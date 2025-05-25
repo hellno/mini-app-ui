@@ -24,7 +24,7 @@ export function AddMiniappButton({
   return (
     <Button
       variant={variant}
-      onClick={(e) => onAddMiniApp()}
+      onClick={() => onAddMiniApp()}
       size="default"
       className={`${className || ""}`}
       disabled={isMiniAppSaved}

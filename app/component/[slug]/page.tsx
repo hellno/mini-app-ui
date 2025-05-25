@@ -16,18 +16,21 @@ function InstallSnippet({ installName }: { installName: string }) {
   const [tab, setTab] = React.useState<"pnpm" | "npm" | "bun">("pnpm");
   const [copied, setCopied] = React.useState(false);
   
+  // Gunakan APP_URL dari environment variable
+  const appUrl = process.env.APP_URL || 'http://localhost:3000';
+  
   const command = React.useMemo(() => {
     switch (tab) {
       case "pnpm":
-        return `pnpm dlx shadcn@latest add https://hellno-mini-app-ui.vercel.app/r/${installName}.json`;
+        return `pnpm dlx shadcn@latest add ${appUrl}/r/${installName}.json`;
       case "npm":
-        return `npx shadcn@latest add https://hellno-mini-app-ui.vercel.app/r/${installName}.json`;
+        return `npx shadcn@latest add ${appUrl}/r/${installName}.json`;
       case "bun":
-        return `bun x shadcn@latest add https://hellno-mini-app-ui.vercel.app/r/${installName}.json`;
+        return `bun x shadcn@latest add ${appUrl}/r/${installName}.json`;
       default:
-        return `pnpm dlx shadcn@latest add https://hellno-mini-app-ui.vercel.app/r/${installName}.json`;
+        return `pnpm dlx shadcn@latest add ${appUrl}/r/${installName}.json`;
     }
-  }, [tab, installName]);
+  }, [tab, installName, appUrl]);
   
   const handleCopy = () => {
     navigator.clipboard.writeText(command);
@@ -80,7 +83,7 @@ export default function ComponentPage() {
   const params = useParams();
   const slug = params?.slug as string;
 
-  // Jika tidak ada slug, tampilkan halaman 404
+  
   if (!slug) {
     notFound();
   }

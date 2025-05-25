@@ -18,18 +18,20 @@ function InstallSnippet({ installName }: { installName: string }) {
   const [tab, setTab] = React.useState<"pnpm" | "npm" | "bun">("pnpm");
   const [copied, setCopied] = React.useState(false);
   
+  const appUrl = process.env.APP_URL || 'http://localhost:3000';
+  
   const command = React.useMemo(() => {
     switch (tab) {
       case "pnpm":
-        return `pnpm dlx shadcn@latest add https://hellno-mini-app-ui.vercel.app/r/${installName}.json`;
+        return `pnpm dlx shadcn@latest add ${appUrl}/r/${installName}.json`;
       case "npm":
-        return `npx shadcn@latest add https://hellno-mini-app-ui.vercel.app/r/${installName}.json`;
+        return `npx shadcn@latest add ${appUrl}/r/${installName}.json`;
       case "bun":
-        return `bun x shadcn@latest add https://hellno-mini-app-ui.vercel.app/r/${installName}.json`;
+        return `bun x shadcn@latest add ${appUrl}/r/${installName}.json`;
       default:
-        return `pnpm dlx shadcn@latest add https://hellno-mini-app-ui.vercel.app/r/${installName}.json`;
+        return `pnpm dlx shadcn@latest add ${appUrl}/r/${installName}.json`;
     }
-  }, [tab, installName]);
+  }, [tab, installName, appUrl]);
   
   const handleCopy = () => {
     navigator.clipboard.writeText(command);

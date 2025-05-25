@@ -11,7 +11,7 @@ export function useMiniAppSdk() {
   const [isMiniAppSaved, setIsMiniAppSaved] = useState(false);
   const [lastEvent, setLastEvent] = useState("");
   const [pinFrameResponse, setPinFrameResponse] = useState("");
-  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isSigningIn] = useState(false);
 
   useEffect(() => {
     if (!sdk) return;
@@ -32,7 +32,7 @@ export function useMiniAppSdk() {
       setIsMiniAppSaved(false);
     });
 
-    sdk.on("notificationsEnabled", ({ notificationDetails }) => {
+    sdk.on("notificationsEnabled", () => {
       setLastEvent("notificationsEnabled");
     });
 

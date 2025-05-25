@@ -13,16 +13,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
 const frame = {
   version: "next",
-  imageUrl: `https://hellno-mini-app-ui.vercel.app/opengraph-image`,
+  imageUrl: `${appUrl}/opengraph-image`,
   button: {
     title: "Show hellno/mini-app-ui",
     action: {
       type: "launch_frame",
       name: "hellno/mini-app-ui",
-      url: "https://hellno-mini-app-ui.vercel.app",
-      splashImageUrl: "https://hellno-mini-app-ui.vercel.app/vibes-icon.png",
+      url: appUrl,
+      splashImageUrl: `${appUrl}/vibes-icon.png`,
       splashBackgroundColor: "#fff",
     },
   },
@@ -31,7 +33,7 @@ const frame = {
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "hellno/mini-app-ui",
-    metadataBase: new URL("https://hellno-mini-app-ui.vercel.app"),
+    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
     openGraph: {
       title: "hellno/mini-app-ui",
       description:
