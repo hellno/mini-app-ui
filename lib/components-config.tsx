@@ -5,6 +5,10 @@ import { ShowCoinBalance } from "@/registry/mini-app/blocks/show-coin-balance/sh
 import { UserAvatar } from "@/registry/mini-app/blocks/avatar/avatar";
 import { UserContext } from "@/registry/mini-app/blocks/user-context/user-context";
 import { NFTCard } from "@/registry/mini-app/blocks/nft-card/nft-card";
+import * as React from "react";
+import { ProfileSearchSimulationDemo } from "@/registry/mini-app/blocks/profile-search/simulationHelper";
+
+
 
 export interface ComponentItem {
   title: string;
@@ -156,5 +160,17 @@ export const componentItems: ComponentItem[] = [
       </div>
     ),
     installName: "nft-card",
+  },
+  {
+    title: "Profile Search Component",
+    component: (
+      <div className="flex flex-col gap-6 w-full max-w-2xl">
+        <div>
+          
+          <ProfileSearchSimulationDemo  />
+        </div>
+      </div>
+    ),
+    installName: "profile-search",
   },
 ];
