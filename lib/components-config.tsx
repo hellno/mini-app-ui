@@ -57,7 +57,7 @@ export const componentGroups: ComponentGroup[] = [
     ],
   },
   {
-    title: "Social & Sharing",
+    title: "Mini App Actions",
     items: [
       {
         title: "Share text and link in a cast",
@@ -129,7 +129,7 @@ export const componentGroups: ComponentGroup[] = [
     ],
   },
   {
-    title: "NFT & Web3",
+    title: "NFT",
     items: [
       {
         title: "NFT Card Display",
