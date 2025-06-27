@@ -1,4 +1,7 @@
+"use client";
+
 import { AppSidebar } from "@/components/app-sidebar"
+import { componentGroups } from "@/lib/components-config"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -17,7 +20,7 @@ import {
 export default function Page() {
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar componentGroups={componentGroups} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 border-b">
           <div className="flex items-center gap-2 px-3">
