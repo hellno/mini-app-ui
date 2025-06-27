@@ -633,7 +633,7 @@ export function NFTMintButton({
 
       <SheetContent
         side="bottom"
-        className="!bottom-0 !rounded-t-xl !rounded-b-none !max-h-[90vh] !h-auto"
+        className="!bottom-0 !rounded-t-xl !rounded-b-none !max-h-[85vh] sm:!max-h-[90vh] !h-auto !px-4 sm:!px-6 pb-safe"
       >
         <SheetHeader className="mb-6">
           <SheetTitle>
@@ -655,7 +655,7 @@ export function NFTMintButton({
         {step === "detecting" && (
           <div className="text-center space-y-4">
             <div className="flex justify-center">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-primary" />
             </div>
             <p className="text-muted-foreground">
               Detecting NFT contract type...
@@ -754,9 +754,9 @@ export function NFTMintButton({
                 <span className="text-muted-foreground">Provider</span>
                 <span className="font-semibold">{providerName}</span>
               </div>
-              <div className="flex justify-between items-center py-3 border-b">
+              <div className="flex justify-between items-center py-3 border-b gap-2">
                 <span className="text-muted-foreground">Contract</span>
-                <span className="font-mono text-sm">
+                <span className="font-mono text-xs sm:text-sm">
                   {contractAddress.slice(0, 6)}...{contractAddress.slice(-4)}
                 </span>
               </div>
@@ -788,7 +788,11 @@ export function NFTMintButton({
             >
               {isConnected ? (
                 !isCorrectNetwork ? (
-                  "Switch Network to Mint"
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    <span className="sm:hidden">Switch Network</span>
+                    <span className="hidden sm:inline">Switch Network to Mint</span>
+                  </>
                 ) : (
                   <>
                     <Coins className="h-5 w-5 mr-2" />
@@ -796,7 +800,11 @@ export function NFTMintButton({
                   </>
                 )
               ) : (
-                "Connect Wallet to Mint"
+                <>
+                  <Wallet className="h-4 w-4 mr-2" />
+                  <span className="sm:hidden">Connect</span>
+                  <span className="hidden sm:inline">Connect Wallet to Mint</span>
+                </>
               )}
             </Button>
           </div>
@@ -806,7 +814,7 @@ export function NFTMintButton({
         {step === "connecting" && (
           <div className="text-center space-y-4">
             <div className="flex justify-center">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-primary" />
             </div>
             <p className="text-muted-foreground">
               Connecting to your Farcaster wallet...
@@ -818,7 +826,7 @@ export function NFTMintButton({
         {(step === "minting" || step === "approving") && (
           <div className="text-center space-y-4">
             <div className="flex justify-center">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-primary" />
             </div>
             <div>
               <p className="font-semibold">
@@ -837,7 +845,7 @@ export function NFTMintButton({
         {step === "waiting" && (
           <div className="text-center space-y-4">
             <div className="flex justify-center">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-primary" />
             </div>
             <div>
               <p className="font-semibold">
@@ -861,10 +869,10 @@ export function NFTMintButton({
         {step === "success" && (
           <div className="text-center space-y-6">
             <div className="flex justify-center">
-              <CheckCircle className="h-20 w-20 text-green-500" />
+              <CheckCircle className="h-16 w-16 sm:h-20 sm:w-20 text-green-500" />
             </div>
             <div className="space-y-3">
-              <p className="text-2xl font-semibold">Minted! 🎉</p>
+              <p className="text-xl sm:text-2xl font-semibold">Minted! 🎉</p>
               <p className="text-muted-foreground">
                 {amount} NFT{amount > 1 ? "s" : ""} successfully minted
               </p>
@@ -895,7 +903,7 @@ export function NFTMintButton({
             <div className="text-center space-y-4">
               <div className="flex justify-center">
                 <div className="p-3 bg-red-50 rounded-full">
-                  <AlertCircle className="h-12 w-12 text-red-500" />
+                  <AlertCircle className="h-10 w-10 sm:h-12 sm:w-12 text-red-500" />
                 </div>
               </div>
               <div className="space-y-2">

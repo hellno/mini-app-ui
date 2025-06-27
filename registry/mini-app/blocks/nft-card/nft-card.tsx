@@ -48,8 +48,8 @@ type NFTCardProps = {
   network?: string;
   alt?: string;
   className?: string;
-  width?: number;
-  height?: number;
+  width?: number | string;
+  height?: number | string;
   rounded?: "none" | "sm" | "md" | "lg" | "xl" | "full";
   shadow?: boolean;
   objectFit?: "contain" | "cover" | "fill";
@@ -410,8 +410,21 @@ export function NFTCard({
 
   // Calculate display dimensions that preserve aspect ratio
   const getDisplayDimensions = () => {
-    const maxWidth = width || 300;
-    const maxHeight = height || 300;
+    // Handle percentage values
+    const isPercentageWidth = typeof width === 'string' && width.includes('%');
+    const isPercentageHeight = typeof height === 'string' && height.includes('%');
+    
+    if (isPercentageWidth || isPercentageHeight) {
+      return { 
+        width: width || '100%', 
+        height: height || '100%', 
+        useContain: false,
+        isPercentage: true
+      };
+    }
+    
+    const maxWidth = typeof width === 'number' ? width : 300;
+    const maxHeight = typeof height === 'number' ? height : 300;
     
     // Check if we have image_details with dimensions
     if (metadata?.image_details?.width && metadata?.image_details?.height) {
@@ -426,20 +439,22 @@ export function NFTCard({
         return { 
           width: maxWidth, 
           height: Math.round(widthBasedHeight),
-          useContain: true // Use contain to show full image
+          useContain: true, // Use contain to show full image
+          isPercentage: false
         };
       } else {
         // Height is the limiting factor
         return { 
           width: Math.round(heightBasedWidth), 
           height: maxHeight,
-          useContain: true
+          useContain: true,
+          isPercentage: false
         };
       }
     }
     
     // No image_details, use provided dimensions
-    return { width: maxWidth, height: maxHeight, useContain: false };
+    return { width: maxWidth, height: maxHeight, useContain: false, isPercentage: false };
   };
 
   const displayDimensions = getDisplayDimensions();
@@ -454,8 +469,12 @@ export function NFTCard({
           className,
         )}
         style={{ 
-          width: `${displayDimensions.width}px`, 
-          height: `${displayDimensions.height}px` 
+          width: displayDimensions.isPercentage 
+            ? displayDimensions.width 
+            : `${displayDimensions.width}px`, 
+          height: displayDimensions.isPercentage 
+            ? displayDimensions.height 
+            : `${displayDimensions.height}px` 
         }}
       >
         {isLoading && (loadingComponent || defaultLoadingComponent)}
@@ -467,7 +486,7 @@ export function NFTCard({
           alt={alt}
           fill={true}
           className={cn(
-            displayDimensions.useContain ? "object-contain" : `object-${objectFit}`,
+            displayDimensions.useContain || displayDimensions.isPercentage ? "object-contain" : `object-${objectFit}`,
             isLoading && "opacity-0"
           )}
           unoptimized={true}

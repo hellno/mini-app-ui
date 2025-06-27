@@ -26,7 +26,6 @@ export function NFTShowcaseDemo({ showHeader = true }: { showHeader?: boolean })
           tokenId: "2"
         }}
         buttonText="Mint with $HIGHER"
-        cardSize={350}
       />
       
       {showHeader && (

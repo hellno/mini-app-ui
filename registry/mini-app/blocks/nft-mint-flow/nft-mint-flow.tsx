@@ -15,7 +15,6 @@ interface NFTMintPageProps {
     tokenId?: string;
   };
   buttonText?: string;
-  cardSize?: number;
 }
 
 /**
@@ -47,19 +46,31 @@ export function NFTMintFlow({
   provider,
   manifoldParams,
   buttonText = "Mint NFT",
-  cardSize = 350,
 }: NFTMintPageProps) {
+  const [containerWidth, setContainerWidth] = React.useState(350);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        const width = containerRef.current.offsetWidth;
+        setContainerWidth(Math.min(width, 350));
+      }
+    };
+
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
   return (
-    <div 
-      className="space-y-4 mx-auto"
-      style={{ width: `${cardSize}px` }}
-    >
+    <div ref={containerRef} className="space-y-4 mx-auto w-full max-w-[350px] px-4 sm:px-0">
       <NFTCard 
         contractAddress={contractAddress}
         tokenId={tokenId}
         network={network}
-        width={cardSize}
-        height={cardSize}
+        width={containerWidth}
+        height={containerWidth}
         rounded="xl"
         shadow={true}
         showTitle={true}
