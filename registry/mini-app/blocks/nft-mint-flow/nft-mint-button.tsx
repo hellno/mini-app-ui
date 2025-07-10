@@ -249,10 +249,10 @@ export function NFTMintButton({
     if (writeError) {
       const parsed = parseError(writeError, txType || "mint");
       
-      // Don't show error state for user rejections - just close
+      // Show retry option for user rejections
       if (parsed.type === "user-rejected") {
-        dispatch({ type: "RESET" });
-        setParsedError(null);
+        setParsedError(parsed);
+        dispatch({ type: "TX_ERROR", payload: "Transaction cancelled by user" });
         return;
       }
       
@@ -503,12 +503,8 @@ export function NFTMintButton({
       dispatch({ type: "MINT_START" });
 
       const args = providerConfig.mintConfig.buildArgs(mintParams);
-      const value = priceData.mintPrice
-        ? providerConfig.mintConfig.calculateValue(
-            priceData.mintPrice,
-            mintParams,
-          )
-        : BigInt(0);
+      
+      const value = priceData.totalCost || BigInt(0);
 
       // Handle Manifold's special case
       const mintAddress =
@@ -516,14 +512,21 @@ export function NFTMintButton({
           ? contractInfo.extensionAddress
           : contractAddress;
 
-      await writeContract({
+      
+      // Prepare contract config based on provider type
+      let contractConfig: any;
+      
+      contractConfig = {
         address: mintAddress,
         abi: providerConfig.mintConfig.abi,
-        functionName: providerConfig.mintConfig.functionName as any,
+        functionName: providerConfig.mintConfig.functionName,
         args,
         value,
         chainId,
-      });
+      };
+
+      // Execute the transaction
+      await writeContract(contractConfig);
       
       // The transaction has been initiated - we'll track it via writeData in the effect
     } catch (err) {
@@ -633,9 +636,9 @@ export function NFTMintButton({
 
       <SheetContent
         side="bottom"
-        className="!bottom-0 !rounded-t-xl !rounded-b-none !max-h-[85vh] sm:!max-h-[90vh] !h-auto !px-4 sm:!px-6 pb-safe"
+        className="!bottom-0 !rounded-t-xl !rounded-b-none !max-h-[75vh] sm:!max-h-[85vh] !h-auto !px-4 sm:!px-6 !pb-8 sm:!pb-12 pb-safe !w-full !max-w-[500px] !mx-auto !left-1/2 !-translate-x-1/2"
       >
-        <SheetHeader className="mb-6">
+        <SheetHeader className="mb-4">
           <SheetTitle>
             {step === "detecting" && "Detecting NFT Type"}
             {step === "sheet" && "Mint NFT"}
@@ -646,7 +649,7 @@ export function NFTMintButton({
             {step === "waiting" &&
               (txType === "approval" ? "Approving..." : "Minting...")}
             {step === "success" && "Mint Successful!"}
-            {step === "error" && "Transaction Failed"}
+            {step === "error" && (parsedError?.type === "user-rejected" ? "Transaction Cancelled" : "Transaction Failed")}
             {step === "validation-error" && "Missing Information"}
           </SheetTitle>
         </SheetHeader>
@@ -698,7 +701,7 @@ export function NFTMintButton({
                 approve the contract to spend your tokens.
               </p>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex justify-between items-center py-3 border-b">
                 <span className="text-muted-foreground">Token</span>
                 <span className="font-semibold">{erc20Details.symbol}</span>
@@ -902,8 +905,15 @@ export function NFTMintButton({
           <div className="space-y-6">
             <div className="text-center space-y-4">
               <div className="flex justify-center">
-                <div className="p-3 bg-red-50 rounded-full">
-                  <AlertCircle className="h-10 w-10 sm:h-12 sm:w-12 text-red-500" />
+                <div className={cn(
+                  "p-3 rounded-full",
+                  parsedError?.type === "user-rejected" ? "bg-yellow-50" : "bg-red-50"
+                )}>
+                  {parsedError?.type === "user-rejected" ? (
+                    <RefreshCw className="h-10 w-10 sm:h-12 sm:w-12 text-yellow-500" />
+                  ) : (
+                    <AlertCircle className="h-10 w-10 sm:h-12 sm:w-12 text-red-500" />
+                  )}
                 </div>
               </div>
               <div className="space-y-2">

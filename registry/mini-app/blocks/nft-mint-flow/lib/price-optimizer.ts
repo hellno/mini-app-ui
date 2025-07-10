@@ -145,21 +145,113 @@ export async function fetchPriceData(
       console.error("Failed to fetch Manifold price data:", err);
       return { totalCost: BigInt(0) };
     }
+  } else if (contractInfo.provider === "nfts2me") {
+    // Special handling for nfts2me - try different pricing patterns
+    
+    // Pattern 1: Try mintPrice() first - for simple/free NFTs2Me contracts
+    try {
+      const mintPrice = await client.readContract({
+        address: params.contractAddress,
+        abi: [{
+          inputs: [],
+          name: "mintPrice",
+          outputs: [{ name: "", type: "uint256" }],
+          stateMutability: "view",
+          type: "function"
+        }],
+        functionName: "mintPrice",
+        args: []
+      });
+      
+      if (mintPrice !== undefined) {
+        // mintPrice() returns the price per NFT
+        const pricePerNFT = mintPrice as bigint;
+        const totalCost = pricePerNFT * BigInt(params.amount || 1);
+        
+        // Handle free mints (mintPrice = 0)
+        return {
+          mintPrice: pricePerNFT,
+          totalCost: totalCost
+        };
+      }
+    } catch (err) {
+      // mintPrice() doesn't exist, try next pattern
+      console.log("mintPrice() not found, trying mintFee pattern");
+    }
+    
+    // Pattern 2: Try mintFee(amount) + protocolFee() - for more complex pricing
+    try {
+      // Fetch both fees in parallel
+      const [mintFee, protocolFee] = await Promise.all([
+        // mintFee is the creator's revenue per NFT
+        client.readContract({
+          address: params.contractAddress,
+          abi: [{
+            inputs: [{ name: "amount", type: "uint256" }],
+            name: "mintFee",
+            outputs: [{ name: "", type: "uint256" }],
+            stateMutability: "view",
+            type: "function"
+          }],
+          functionName: "mintFee",
+          args: [BigInt(params.amount || 1)]
+        }),
+        // protocolFee is the platform fee (0.0001 ETH unless disabled)
+        client.readContract({
+          address: params.contractAddress,
+          abi: [{
+            inputs: [],
+            name: "protocolFee",
+            outputs: [{ name: "", type: "uint256" }],
+            stateMutability: "view",
+            type: "function"
+          }],
+          functionName: "protocolFee",
+          args: []
+        })
+      ]);
+      
+      if (mintFee !== undefined && protocolFee !== undefined) {
+        // Total cost = creator revenue (mintFee) + platform fee (protocolFee * amount)
+        const totalCost = (mintFee as bigint) + ((protocolFee as bigint) * BigInt(params.amount || 1));
+        return {
+          mintPrice: mintFee as bigint,
+          totalCost: totalCost
+        };
+      }
+    } catch (err) {
+      console.error("Failed to fetch nfts2me fees:", err);
+    }
+    
+    // Pattern 3: Fallback to default fees if all patterns fail
+    const amount = BigInt(params.amount || 1);
+    const creatorFeePerNFT = BigInt("100000000000000"); // 0.0001 ETH creator fee per NFT
+    const protocolFeePerNFT = BigInt("100000000000000"); // 0.0001 ETH protocol fee per NFT
+    return { 
+      mintPrice: creatorFeePerNFT * amount,
+      totalCost: (creatorFeePerNFT + protocolFeePerNFT) * amount
+    };
   } else {
     // Generic price discovery - try multiple function names
     const functionNames = config.priceDiscovery.functionNames;
     
     for (const functionName of functionNames) {
       try {
+        // Check if this function requires an amount parameter
+        const args = config.priceDiscovery.requiresAmountParam 
+          ? [BigInt(params.amount || 1)]
+          : [];
+        
         const price = await client.readContract({
           address: params.contractAddress,
           abi: config.priceDiscovery.abis[0],
           functionName: functionName as any,
-          args: []
+          args
         });
         
         if (price !== undefined) {
-          const totalCost = (price as bigint) * BigInt(params.amount || 1);
+          // Calculate total cost based on provider's custom logic
+          const totalCost = config.mintConfig.calculateValue(price as bigint, params);
           return {
             mintPrice: price as bigint,
             totalCost

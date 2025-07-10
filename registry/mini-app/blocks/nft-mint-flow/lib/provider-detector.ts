@@ -83,6 +83,33 @@ export async function detectNFTProvider(params: MintParams): Promise<NFTContract
       }
     }
 
+    // Check if it's an NFTs2Me contract by looking for unique functions
+    try {
+      // Try to call n2mVersion - this is unique to NFTs2Me contracts
+      const version = await client.readContract({
+        address: contractAddress,
+        abi: [{
+          inputs: [],
+          name: "n2mVersion",
+          outputs: [{ name: "", type: "uint256" }],
+          stateMutability: "pure",
+          type: "function"
+        }],
+        functionName: "n2mVersion"
+      });
+      
+      // If n2mVersion exists, it's an NFTs2Me contract
+      if (version !== undefined) {
+        return {
+          provider: "nfts2me",
+          isERC1155: isERC1155 as boolean,
+          isERC721: isERC721 as boolean
+        };
+      }
+    } catch {
+      // Not an NFTs2Me contract, continue detection
+    }
+
     // TODO: Add detection for OpenSea, Zora, etc.
     // For now, return generic
     return {

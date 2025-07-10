@@ -79,6 +79,39 @@ export const PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
     },
     requiredParams: ["contractAddress", "chainId"],
     supportsERC20: false
+  },
+
+  nfts2me: {
+    name: "nfts2me",
+    priceDiscovery: {
+      // For nfts2me, we need a custom ABI with mintFee function
+      abis: [[{
+        inputs: [{ name: "amount", type: "uint256" }],
+        name: "mintFee",
+        outputs: [{ name: "", type: "uint256" }],
+        stateMutability: "view",
+        type: "function"
+      }]],
+      functionNames: ["mintFee"],
+      // Custom logic to handle mintFee with amount parameter
+      requiresAmountParam: true
+    },
+    mintConfig: {
+      // NFTs2Me mint(amount) expects the number of NFTs to mint
+      // For minting 1 NFT, pass 1. Payment is via msg.value.
+      abi: [{
+        inputs: [{ name: "amount", type: "uint256" }],
+        name: "mint",
+        outputs: [],
+        stateMutability: "payable",
+        type: "function"
+      }],
+      functionName: "mint",
+      buildArgs: (params) => [BigInt(params.amount || 1)],
+      calculateValue: (price, params) => price * BigInt(params.amount || 1)
+    },
+    requiredParams: ["contractAddress", "chainId"],
+    supportsERC20: false
   }
 };
 

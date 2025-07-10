@@ -22,6 +22,14 @@ const nftExamples: NFTMintExample[] = [
     buttonText: "Mint Demo NFT",
   },
   {
+    title: "Base Flamenco (NFTs2Me)",
+    description: "NFTs2Me contract with dynamic pricing",
+    contractAddress: "0x60b400dC94195076580b3556004E87488C10FC83",
+    instanceId: "",
+    tokenId: "",
+    buttonText: "Mint Base Flamenco",
+  },
+  {
     title: "Manifold Higher ERC20 + ETH Fee",
     description: "",
     contractAddress: "0x32dd0a7190b5bba94549a0d04659a9258f5b1387",
@@ -90,7 +98,13 @@ export function NFTMintExamples({
               <NFTMintButton
                 contractAddress={example.contractAddress}
                 chainId={8453} // Base mainnet
-                provider={example.instanceId ? "manifold" : undefined}
+                provider={
+                  example.instanceId 
+                    ? "manifold" 
+                    : example.title.includes("NFTs2Me") 
+                      ? "nfts2me" 
+                      : undefined
+                }
                 manifoldParams={
                   example.instanceId
                     ? {

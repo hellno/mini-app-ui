@@ -5,7 +5,7 @@ import { NFTMintFlow } from "@/registry/mini-app/blocks/nft-mint-flow/nft-mint-f
 
 export function NFTShowcaseDemo({ showHeader = true }: { showHeader?: boolean }) {
   return (
-    <div className="w-full max-w-md mx-auto space-y-6">
+    <div className="w-full flex flex-col items-center space-y-6">
       {showHeader && (
         <div className="text-center mb-4">
           <h3 className="text-lg font-semibold mb-2">NFT Card + Mint Button</h3>
@@ -15,18 +15,20 @@ export function NFTShowcaseDemo({ showHeader = true }: { showHeader?: boolean })
         </div>
       )}
       
-      <NFTMintFlow
-        contractAddress="0x32dd0a7190b5bba94549a0d04659a9258f5b1387"
-        tokenId="2"
-        network="base"
-        chainId={8453}
-        provider="manifold"
-        manifoldParams={{
-          instanceId: "4293509360",
-          tokenId: "2"
-        }}
-        buttonText="Mint with $HIGHER"
-      />
+      <div className="w-full flex justify-center">
+        <NFTMintFlow
+          contractAddress="0x32dd0a7190b5bba94549a0d04659a9258f5b1387"
+          tokenId="2"
+          network="base"
+          chainId={8453}
+          provider="manifold"
+          manifoldParams={{
+            instanceId: "4293509360",
+            tokenId: "2"
+          }}
+          buttonText="Mint with $HIGHER"
+        />
+      </div>
       
       {showHeader && (
         <div className="mt-8 p-4 bg-muted/50 rounded-lg">

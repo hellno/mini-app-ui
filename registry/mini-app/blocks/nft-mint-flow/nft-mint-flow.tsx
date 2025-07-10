@@ -64,7 +64,7 @@ export function NFTMintFlow({
   }, []);
 
   return (
-    <div ref={containerRef} className="space-y-4 mx-auto w-full max-w-[350px] px-4 sm:px-0">
+    <div ref={containerRef} className="space-y-4 w-full max-w-[350px]">
       <NFTCard 
         contractAddress={contractAddress}
         tokenId={tokenId}

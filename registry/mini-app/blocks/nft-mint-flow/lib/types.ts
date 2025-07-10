@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-export type NFTProvider = "manifold" | "opensea" | "zora" | "generic";
+export type NFTProvider = "manifold" | "opensea" | "zora" | "generic" | "nfts2me";
 
 export interface ProviderConfig {
   name: NFTProvider;
@@ -16,6 +16,7 @@ export interface PriceDiscoveryConfig {
   abis: any[];
   functionNames: string[];
   requiresInstanceId?: boolean;
+  requiresAmountParam?: boolean;
 }
 
 export interface MintConfig {

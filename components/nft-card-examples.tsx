@@ -31,6 +31,15 @@ const nftExamples: NFTExample[] = [
     networkPosition: "outside",
   },
   {
+    title: "Base Flamenco",
+    description: "NFTs2Me on Base",
+    contractAddress: "0x60b400dC94195076580b3556004E87488C10FC83",
+    tokenId: "315",
+    network: "base",
+    titlePosition: "outside",
+    networkPosition: "outside",
+  },
+  {
     title: "Farcaster Pro OG",
     description: "Base NFT collection",
     contractAddress: "0x61886e7d61F4086AdA1829880AF440AA0DE3fc96",
@@ -96,8 +105,8 @@ export function NftCardExamples({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // On mobile, show only first 3 examples
-  const displayExamples = isMobile ? nftExamples.slice(0, 3) : nftExamples;
+  // On mobile, show only first 4 examples
+  const displayExamples = isMobile ? nftExamples.slice(0, 4) : nftExamples;
 
   return (
     <div className="w-full">
