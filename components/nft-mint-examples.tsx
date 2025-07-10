@@ -101,9 +101,7 @@ export function NFTMintExamples({
                 provider={
                   example.instanceId 
                     ? "manifold" 
-                    : example.title.includes("NFTs2Me") 
-                      ? "nfts2me" 
-                      : undefined
+                    : undefined
                 }
                 manifoldParams={
                   example.instanceId
@@ -116,9 +114,7 @@ export function NFTMintExamples({
                 buttonText={example.buttonText}
                 size="sm"
                 variant="outline"
-                onMintSuccess={(txHash) =>
-                  console.log(`Mint successful for ${example.title}:`, txHash)
-                }
+                onMintSuccess={() => {}}
                 onMintError={(error) =>
                   console.error(`Mint failed for ${example.title}:`, error)
                 }
