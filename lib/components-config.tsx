@@ -5,7 +5,7 @@ import { ShowCoinBalance } from "@/registry/mini-app/blocks/show-coin-balance/sh
 import { UserAvatar } from "@/registry/mini-app/blocks/avatar/avatar";
 import { UserContext } from "@/registry/mini-app/blocks/user-context/user-context";
 import * as React from "react";
-import { ProfileSearchSimulationDemo } from "@/registry/mini-app/blocks/profile-search/simulationHelper";
+import { OnchainUserSearchSimulationDemo } from "@/registry/mini-app/blocks/onchain-user-search/simulationHelper";
 import { NFTMintExamples } from "@/components/nft-mint-examples";
 import { NftCardExamples } from "@/components/nft-card-examples";
 import { NFTShowcaseDemo } from "@/components/nft-showcase-demo";
@@ -118,13 +118,13 @@ export const componentGroups: ComponentGroup[] = [
         installName: "user-context",
       },
       {
-        title: "Profile Search",
+        title: "Onchain User Search",
         component: (
           <div className="flex flex-col gap-6 w-full max-w-2xl">
-            <ProfileSearchSimulationDemo />
+            <OnchainUserSearchSimulationDemo />
           </div>
         ),
-        installName: "profile-search",
+        installName: "onchain-user-search",
       },
     ],
   },

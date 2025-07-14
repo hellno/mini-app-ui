@@ -21,7 +21,7 @@
     "https://hellno-mini-app-ui.vercel.app/r/avatar.json",
     "https://hellno-mini-app-ui.vercel.app/r/user-context.json",
     "https://hellno-mini-app-ui.vercel.app/r/nft-card.json",
-    "https://hellno-mini-app-ui.vercel.app/r/profile-search.json",
+    "https://hellno-mini-app-ui.vercel.app/r/onchain-user-search.json",
     "https://hellno-mini-app-ui.vercel.app/r/nft-mint-flow.json"
   ],
   "files": []

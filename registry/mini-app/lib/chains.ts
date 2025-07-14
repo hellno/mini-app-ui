@@ -104,3 +104,16 @@ export function findChainByName(networkName: string): Chain | undefined {
   const chainId = nameToId[normalizedName];
   return chainId ? getChainById(chainId) : undefined;
 }
+
+/**
+ * Get Alchemy RPC endpoint URL for a specific chain
+ */
+export function getAlchemyEndpoint(chainId: number, apiKey: string): string | undefined {
+  const config = SUPPORTED_CHAINS.find((c) => c.id === chainId);
+  
+  if (config?.alchemyPrefix && apiKey) {
+    return `https://${config.alchemyPrefix}.g.alchemy.com/v2/${apiKey}`;
+  }
+  
+  return undefined;
+}

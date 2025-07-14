@@ -1,7 +1,6 @@
 import React from "react";
-import { ProfileSearch, type FarcasterUser } from "./profile-search";
+import { OnchainUserSearch, type FarcasterUser, type UnifiedUser, calculateRelevanceScore } from "@/registry/mini-app/blocks/onchain-user-search/onchain-user-search";
 import { FlaskConical } from "lucide-react";
-import { calculateRelevanceScore } from "./profile-search";
 
 // Mock data for simulation mode
 const mockUsers: FarcasterUser[] = [
@@ -83,7 +82,7 @@ const simulateSearch = async (
   query: string,
   _apiKey: string,
   maxResults: number,
-): Promise<{ users: FarcasterUser[]; total: number }> => {
+): Promise<{ users: UnifiedUser[]; nextCursor?: string }> => {
   // Simulate API delay
   await new Promise((resolve) =>
     setTimeout(resolve, 800 + Math.random() * 400),
@@ -105,25 +104,38 @@ const simulateSearch = async (
     .sort((a, b) => b.score - a.score)
     .map((item) => item.user);
 
-  // Return top results and total count
+  // Convert to UnifiedUser format
+  const unifiedUsers = sortedMatches.slice(0, maxResults).map((user): UnifiedUser => {
+    const primaryAddr = user.verified_addresses?.eth_addresses?.[0] || "0x0000000000000000000000000000000000000000";
+    return {
+      primaryAddress: primaryAddr,
+      ensName: user.username.endsWith(".eth") ? user.username : undefined,
+      farcaster: user,
+      addresses: user.verified_addresses?.eth_addresses || [primaryAddr],
+      source: "farcaster",
+    };
+  });
+
   return {
-    users: sortedMatches.slice(0, maxResults),
-    total: sortedMatches.length,
+    users: unifiedUsers,
+    nextCursor: sortedMatches.length > maxResults ? "next" : undefined,
   };
 };
 
 // Demo wrapper with simulation mode
-export function ProfileSearchSimulationDemo() {
+export function OnchainUserSearchSimulationDemo() {
   const apiKey = process.env.NEXT_PUBLIC_NEYNAR_API_KEY;
   return (
     <>
       <div className="space-y-4">
-        <ProfileSearch
+        <OnchainUserSearch
           apiKey={apiKey as string}
           searchFunction={!apiKey ? simulateSearch : undefined}
-          placeholder="Search for users like 'vitalik', 'dwr', etc..."
+          placeholder="Search by username, ENS, or address..."
           maxResults={5}
           autoSearch={true}
+          showAddresses={true}
+          showENS={true}
         />
         {/* Simulation Mode Banner */}
         {!apiKey && (

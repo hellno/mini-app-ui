@@ -208,24 +208,27 @@
       ]
     },
     {
-      "name": "profile-search",
+      "name": "onchain-user-search",
       "type": "registry:component",
-      "title": "Profile Search",
-      "description": "Search Farcaster users with Neynar API and view profiles using mini app SDK. Shows results in clickable cards with user details.",
-      "dependencies": ["lucide-react"],
+      "title": "Onchain User Search",
+      "description": "Unified search for team members and friends across Farcaster usernames, ENS names, and Ethereum addresses. Resolves in all three directions with onchain address as primary interface.",
+      "dependencies": ["lucide-react", "viem"],
       "registryDependencies": [
         "button",
         "input",
         "https://hellno-mini-app-ui.vercel.app/r/use-miniapp-sdk.json",
-        "https://hellno-mini-app-ui.vercel.app/r/utils.json"
+        "https://hellno-mini-app-ui.vercel.app/r/utils.json",
+        "https://hellno-mini-app-ui.vercel.app/r/chains.json",
+        "https://hellno-mini-app-ui.vercel.app/r/text-utils.json",
+        "https://hellno-mini-app-ui.vercel.app/r/address-utils.json"
       ],
       "meta": {
-        "use_cases": ["User Search", "Profile Lookup"],
-        "keywords": ["search", "profiles", "neynar", "farcaster", "sdk"]
+        "use_cases": ["User Search", "Profile Lookup", "Address Resolution", "ENS Resolution", "Team Member Search"],
+        "keywords": ["search", "profiles", "neynar", "farcaster", "ens", "address", "ethereum", "onchain"]
       },
       "files": [
         {
-          "path": "registry/mini-app/blocks/profile-search/profile-search.tsx",
+          "path": "registry/mini-app/blocks/onchain-user-search/onchain-user-search.tsx",
           "type": "registry:component"
         }
       ]
@@ -340,6 +343,20 @@
         }
       ],
       "dependencies": [],
+      "registryDependencies": []
+    },
+    {
+      "name": "address-utils",
+      "type": "registry:lib",
+      "title": "addressUtils",
+      "description": "Utility functions for Ethereum address formatting, validation, and input type detection",
+      "files": [
+        {
+          "path": "registry/mini-app/lib/address-utils.ts",
+          "type": "registry:lib"
+        }
+      ],
+      "dependencies": ["viem"],
       "registryDependencies": []
     },
     {
