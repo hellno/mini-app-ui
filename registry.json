@@ -52,7 +52,7 @@
       "dependencies": [],
       "registryDependencies": [
         "button",
-        "https://hellno-mini-app-ui.vercel.app/r/use-miniapp-sdk.json"
+        "use-miniapp-sdk"
       ],
 
       "meta": {
@@ -84,7 +84,7 @@
       "dependencies": [],
       "registryDependencies": [
         "button",
-        "https://hellno-mini-app-ui.vercel.app/r/use-miniapp-sdk.json"
+        "use-miniapp-sdk"
       ],
       "files": [
         {
@@ -138,7 +138,7 @@
       ],
       "dependencies": ["@farcaster/frame-core", "@farcaster/frame-sdk"],
       "registryDependencies": [
-        "https://hellno-mini-app-ui.vercel.app/r/use-miniapp-sdk.json"
+        "use-miniapp-sdk"
       ]
     },
     {
@@ -216,7 +216,7 @@
       "registryDependencies": [
         "button",
         "input",
-        "https://hellno-mini-app-ui.vercel.app/r/use-miniapp-sdk.json",
+        "use-miniapp-sdk",
         "https://hellno-mini-app-ui.vercel.app/r/utils.json",
         "https://hellno-mini-app-ui.vercel.app/r/chains.json",
         "https://hellno-mini-app-ui.vercel.app/r/text-utils.json",
@@ -247,7 +247,7 @@
       "registryDependencies": [
         "button",
         "sheet",
-        "https://hellno-mini-app-ui.vercel.app/r/use-miniapp-sdk.json",
+        "use-miniapp-sdk",
         "https://hellno-mini-app-ui.vercel.app/r/chains.json",
         "https://hellno-mini-app-ui.vercel.app/r/nft-standards.json",
         "https://hellno-mini-app-ui.vercel.app/r/nft-card.json"

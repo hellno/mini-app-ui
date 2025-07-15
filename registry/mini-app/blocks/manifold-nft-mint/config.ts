@@ -89,7 +89,7 @@ export async function getNftDetails(contractAddress: Address, instanceId: string
       const [rawInstanceId, rawClaim] = data;
       
       // Validate types
-      if (typeof rawInstanceId !== 'bigint' || !rawClaim || typeof rawClaim !== 'object') {
+      if (typeof rawInstanceId !== "bigint" || !rawClaim || typeof rawClaim !== "object") {
         throw new Error("Invalid data types in getClaimForToken response");
       }
       
@@ -125,7 +125,7 @@ export async function getNftDetails(contractAddress: Address, instanceId: string
     const [rawInstanceId, rawClaim] = data;
     
     // Validate types
-    if (typeof rawInstanceId !== 'bigint' || !rawClaim || typeof rawClaim !== 'object') {
+    if (typeof rawInstanceId !== "bigint" || !rawClaim || typeof rawClaim !== "object") {
       throw new Error("Invalid data types in getClaimForToken response");
     }
     

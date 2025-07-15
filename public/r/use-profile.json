@@ -9,7 +9,7 @@
     "@farcaster/frame-sdk"
   ],
   "registryDependencies": [
-    "https://hellno-mini-app-ui.vercel.app/r/use-miniapp-sdk.json"
+    "use-miniapp-sdk"
   ],
   "files": [
     {

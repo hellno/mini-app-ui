@@ -10,7 +10,10 @@
     "lint": "next lint",
     "prepare": "husky",
     "test:nft": "tsx scripts/test-nft-contracts.ts",
-    "registry:build": "shadcn registry:build && node scripts/clean-registry.js && node scripts/generate-all-components.js"
+    "registry:build": "shadcn registry:build && node scripts/clean-registry.js",
+    "registry:test": "node scripts/test-registry-install.js",
+    "registry:test:build": "node scripts/test-registry-install.js --build",
+    "registry:test:keep": "node scripts/test-registry-install.js --keep"
   },
   "dependencies": {
     "@daimo/contract": "^1.6.0",
