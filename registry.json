@@ -73,6 +73,34 @@
       ]
     },
     {
+      "name": "share-bottom-sheet",
+      "type": "registry:component",
+      "title": "Share Bottom Sheet",
+      "description": "A bottom sheet component for sharing content to Farcaster with customizable message",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "button",
+        "sheet",
+        "use-miniapp-sdk"
+      ],
+      "meta": {
+        "demoUrl": "/component/share-bottom-sheet",
+        "use_cases": [
+          "Social Sharing",
+          "Share Dialogs",
+          "Call-to-Action Prompts",
+          "Mobile-First Sharing"
+        ],
+        "keywords": ["share", "bottom-sheet", "cast", "farcaster", "social", "dialog", "modal"]
+      },
+      "files": [
+        {
+          "path": "registry/mini-app/blocks/share-bottom-sheet/share-bottom-sheet.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "add-miniapp-button",
       "type": "registry:component",
       "title": "Add MiniApp Button",

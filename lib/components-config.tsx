@@ -1,5 +1,6 @@
 import { DaimoPayTransferButton } from "@/registry/mini-app/blocks/daimo-pay-transfer/components/daimo-pay-transfer-button";
 import { ShareCastButton } from "@/registry/mini-app/blocks/share-cast-button/share-cast-button";
+import { ShareBottomSheet } from "@/registry/mini-app/blocks/share-bottom-sheet/share-bottom-sheet";
 import { AddMiniappButton } from "@/registry/mini-app/blocks/add-miniapp-button/add-miniapp-button";
 import { ShowCoinBalance } from "@/registry/mini-app/blocks/show-coin-balance/show-coin-balance";
 import { UserAvatar } from "@/registry/mini-app/blocks/avatar/avatar";
@@ -73,6 +74,11 @@ export const componentGroups: ComponentGroup[] = [
         title: "Add or pin a mini app",
         component: <AddMiniappButton />,
         installName: "add-miniapp-button",
+      },
+      {
+        title: "Share Bottom Sheet",
+        component: <ShareBottomSheetDemo />,
+        installName: "share-bottom-sheet",
       },
     ],
   },
@@ -171,6 +177,29 @@ export function NFTShowcase() {
     ],
   },
 ];
+
+// ShareBottomSheet demo component
+function ShareBottomSheetDemo() {
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+      >
+        Open Share Sheet
+      </button>
+      <ShareBottomSheet
+        open={open}
+        onOpenChange={setOpen}
+        shareText="I just donated to help support Roman Storm's legal defense fund. Join me in defending the right to privacy and the right to publish code!"
+        shareUrl="https://www.justiceforstorm.com"
+        title="Inspire others to support!"
+      />
+    </>
+  );
+}
 
 // Flatten groups into a single array for backward compatibility
 export const componentItems: ComponentItem[] = componentGroups.flatMap(

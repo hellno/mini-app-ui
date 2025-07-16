@@ -199,8 +199,9 @@ Components can depend on other registry items via `registryDependencies` field i
 When adding new components:
 1. Create component files in `registry/mini-app/blocks/<name>/`
 2. Add registry entry to `registry.json` with proper metadata
-3. The pre-commit hook will automatically run `registry:build` to generate public files
-4. Deploy triggers automatic Vercel deployment
+3. Add the component to `lib/components-config.tsx` so it appears on the homepage for users to test (components only, not hooks or utils)
+4. The pre-commit hook will automatically run `registry:build` to generate public files
+5. Deploy triggers automatic Vercel deployment
 
 ## Important Notes
 
