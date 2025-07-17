@@ -313,7 +313,7 @@ export function OnchainUserSearch({
           const addresses = fcUser.verified_addresses?.eth_addresses || [];
           results.push({
             primaryAddress: normalizedAddr,
-            ensName,
+            ensName: ensName || undefined,
             farcaster: fcUser,
             addresses: addresses
               .filter((addr) => !addressesEqual(addr, normalizedAddr))
@@ -325,7 +325,7 @@ export function OnchainUserSearch({
         // No Farcaster account, just show address info
         results.push({
           primaryAddress: normalizedAddr,
-          ensName,
+          ensName: ensName || undefined,
           addresses: [normalizedAddr],
           source: "address",
         });
@@ -382,7 +382,7 @@ export function OnchainUserSearch({
 
         results.push({
           primaryAddress: primaryAddr,
-          ensName,
+          ensName: ensName || undefined,
           farcaster: fcUser,
           addresses: fcUser.verified_addresses?.eth_addresses || [],
           source: "farcaster",
