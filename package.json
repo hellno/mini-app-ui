@@ -18,9 +18,9 @@
   "dependencies": {
     "@daimo/contract": "^1.6.0",
     "@daimo/pay": "^1.8.4",
-    "@farcaster/frame-core": "^0.0.40",
-    "@farcaster/frame-sdk": "^0.0.53",
-    "@farcaster/frame-wagmi-connector": "^0.0.39",
+    "@farcaster/frame-core": "^0.0.44",
+    "@farcaster/frame-sdk": "^0.0.56",
+    "@farcaster/frame-wagmi-connector": "^0.0.42",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-label": "^2.1.4",

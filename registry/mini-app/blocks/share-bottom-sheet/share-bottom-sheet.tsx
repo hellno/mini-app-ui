@@ -40,10 +40,13 @@ export function ShareBottomSheet({
       
       if (frameContext) {
         // Use SDK to compose cast within the mini app
-        const cast = {
+        let cast: { text: string; embeds: [] | [string] } = {
           text: shareText.slice(0, 320), // Enforce character limit
-          embeds: shareUrl ? [shareUrl] : [],
+          embeds: [],
         };
+        if (shareUrl) {
+          cast.embeds = [shareUrl];
+        }
         await sdk.actions.composeCast(cast);
         onOpenChange(false);
       } else {
