@@ -14,6 +14,14 @@ interface NFTMintExample {
 
 const nftExamples: NFTMintExample[] = [
   {
+    title: "Test NFT - No Image",
+    description: "Testing NFT processing for contract without metadata",
+    contractAddress: "0x8F843c58201197D20A4ed8AeC12ae8527c2c4d7b",
+    instanceId: "",
+    tokenId: "",
+    buttonText: "Mint Test NFT",
+  },
+  {
     title: "Generic NFT Mint",
     description: "",
     contractAddress: "0x5b97886E4e1fC0F7d19146DEC03C917994b3c3a4",

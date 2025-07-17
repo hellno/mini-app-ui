@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "address-utils",
+  "type": "registry:lib",
+  "title": "addressUtils",
+  "description": "Utility functions for Ethereum address formatting, validation, and input type detection",
+  "dependencies": [
+    "viem"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/mini-app/lib/address-utils.ts",
+      "content": "import { isAddress, getAddress } from \"viem\";\n\n/**\n * Formats an Ethereum address to show first and last few characters\n * @param address - The address to format\n * @param chars - Number of characters to show at start and end (default: 4)\n * @returns Formatted address like \"0x1234...5678\"\n */\nexport function formatAddress(address: string, chars = 4): string {\n  if (!address || address.length < chars * 2 + 2) return address;\n  return `${address.slice(0, chars + 2)}...${address.slice(-chars)}`;\n}\n\n/**\n * Detects the type of input (address, ENS name, or username)\n * @param input - The search input\n * @returns The detected input type\n */\nexport type InputType = \"address\" | \"ens\" | \"username\";\n\nexport function detectInputType(input: string): InputType {\n  if (!input || input.trim().length === 0) return \"username\";\n  \n  const trimmed = input.trim();\n  \n  // Check if it's a valid Ethereum address\n  if (isAddress(trimmed)) {\n    return \"address\";\n  }\n  \n  // Check if it's an ENS name (contains . and not already an address)\n  if (trimmed.includes(\".\") && trimmed.length > 3) {\n    // Common ENS TLDs\n    const ensPattern = /\\.(eth|xyz|luxe|kred|art|club|test)$/i;\n    if (ensPattern.test(trimmed)) {\n      return \"ens\";\n    }\n  }\n  \n  // Default to username (Farcaster username or FID)\n  return \"username\";\n}\n\n/**\n * Validates and normalizes an Ethereum address\n * @param address - The address to validate\n * @returns The checksummed address or null if invalid\n */\nexport function normalizeAddress(address: string): string | null {\n  try {\n    if (!isAddress(address)) return null;\n    return getAddress(address);\n  } catch {\n    return null;\n  }\n}\n\n/**\n * Checks if two addresses are equal (case-insensitive)\n * @param addr1 - First address\n * @param addr2 - Second address\n * @returns True if addresses are equal\n */\nexport function addressesEqual(addr1: string | null | undefined, addr2: string | null | undefined): boolean {\n  if (!addr1 || !addr2) return false;\n  try {\n    return getAddress(addr1).toLowerCase() === getAddress(addr2).toLowerCase();\n  } catch {\n    return false;\n  }\n}",
+      "type": "registry:lib"
+    }
+  ]
+}

@@ -199,8 +199,9 @@ Components can depend on other registry items via `registryDependencies` field i
 When adding new components:
 1. Create component files in `registry/mini-app/blocks/<name>/`
 2. Add registry entry to `registry.json` with proper metadata
-3. The pre-commit hook will automatically run `registry:build` to generate public files
-4. Deploy triggers automatic Vercel deployment
+3. Add the component to `lib/components-config.tsx` so it appears on the homepage for users to test (components only, not hooks or utils)
+4. The pre-commit hook will automatically run `registry:build` to generate public files
+5. Deploy triggers automatic Vercel deployment
 
 ## Important Notes
 
@@ -305,3 +306,40 @@ The shadcn CLI sometimes adds extra quotes around string literals during install
    ```
 
 3. **Test registry output** - After running `pnpm registry:build`, check the generated JSON files in `public/r/` to ensure no transformation issues
+
+### Critical: TypeScript typeof Comparisons
+
+The shadcn CLI has a bug where it adds extra quotes around string literals in typeof comparisons, breaking TypeScript builds:
+
+```typescript
+// BEFORE installation (in registry):
+if (typeof width === "string") { }
+
+// AFTER installation (broken - extra quotes):
+if (typeof width === "'string'") { }
+```
+
+**Solution: Always use double quotes for typeof comparisons and test after installation:**
+
+```typescript
+// ✅ REQUIRED: Use double quotes consistently
+if (typeof value === "string") { }
+if (typeof value === "number") { }
+if (typeof value === "bigint") { }
+if (typeof value === "object") { }
+if (typeof value === "boolean") { }
+if (typeof value === "undefined") { }
+if (typeof value === "function") { }
+if (typeof value === "symbol") { }
+
+// ❌ NEVER: Don't use single quotes
+if (typeof value === 'string') { }  // Will break during installation
+```
+
+**Common locations where this occurs:**
+- Width/height checks: `typeof width === "string"`
+- Data validation: `typeof data !== "object"`
+- Number checks: `typeof value === "number"`
+- BigInt validation: `typeof id !== "bigint"`
+
+**Always run `pnpm registry:build` and test installation before committing!**

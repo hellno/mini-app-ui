@@ -411,8 +411,8 @@ export function NFTCard({
   // Calculate display dimensions that preserve aspect ratio
   const getDisplayDimensions = () => {
     // Handle percentage values
-    const isPercentageWidth = typeof width === 'string' && width.includes('%');
-    const isPercentageHeight = typeof height === 'string' && height.includes('%');
+    const isPercentageWidth = typeof width === "string" && width.includes("%");
+    const isPercentageHeight = typeof height === "string" && height.includes("%");
     
     if (isPercentageWidth || isPercentageHeight) {
       return { 
@@ -423,8 +423,8 @@ export function NFTCard({
       };
     }
     
-    const maxWidth = typeof width === 'number' ? width : 300;
-    const maxHeight = typeof height === 'number' ? height : 300;
+    const maxWidth = typeof width === "number" ? width : 300;
+    const maxHeight = typeof height === "number" ? height : 300;
     
     // Check if we have image_details with dimensions
     if (metadata?.image_details?.width && metadata?.image_details?.height) {
