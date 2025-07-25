@@ -267,6 +267,33 @@ Common issues and solutions:
    - Relative imports (`./lib/utils`) don't work
    - Must use full registry paths
 
+### Registry Dependencies Handling
+
+**IMPORTANT**: The shadcn CLI treats `registryDependencies` differently based on format:
+
+1. **Name-based references** (e.g., `"button"`, `"card"`) - These ALWAYS resolve to the official shadcn registry
+2. **URL-based references** (e.g., `"https://hellno-mini-app-ui.vercel.app/r/use-miniapp-sdk.json"`) - These resolve to the specified URL
+
+For our custom registry:
+- **Use names** for standard shadcn components: `button`, `input`, `card`, `sheet`
+- **Use full URLs** for our custom components: `use-miniapp-sdk`, `chains`, `utils`, etc.
+
+```json
+// ✅ CORRECT: Hybrid approach
+"registryDependencies": [
+  "button",  // Standard shadcn component - use name
+  "sheet",   // Standard shadcn component - use name
+  "https://hellno-mini-app-ui.vercel.app/r/use-miniapp-sdk.json",  // Custom - use URL
+  "https://hellno-mini-app-ui.vercel.app/r/utils.json"             // Custom - use URL
+]
+
+// ❌ WRONG: Will cause 404 errors
+"registryDependencies": [
+  "use-miniapp-sdk",  // Custom component with name = looks in official registry
+  "utils"             // Custom component with name = looks in official registry
+]
+```
+
 ### Testing Installation
 
 Always test your component installation in a separate project:
