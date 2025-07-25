@@ -20,7 +20,7 @@
   "registryDependencies": [
     "button",
     "sheet",
-    "use-miniapp-sdk",
+    "https://hellno-mini-app-ui.vercel.app/r/use-miniapp-sdk.json",
     "https://hellno-mini-app-ui.vercel.app/r/chains.json",
     "https://hellno-mini-app-ui.vercel.app/r/nft-standards.json",
     "https://hellno-mini-app-ui.vercel.app/r/nft-card.json"

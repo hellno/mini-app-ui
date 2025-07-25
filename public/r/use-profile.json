@@ -9,7 +9,7 @@
     "@farcaster/miniapp-sdk"
   ],
   "registryDependencies": [
-    "use-miniapp-sdk"
+    "https://hellno-mini-app-ui.vercel.app/r/use-miniapp-sdk.json"
   ],
   "files": [
     {

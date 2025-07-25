@@ -17,7 +17,7 @@
   "registryDependencies": [
     "button",
     "input",
-    "use-miniapp-sdk",
+    "https://hellno-mini-app-ui.vercel.app/r/use-miniapp-sdk.json",
     "https://hellno-mini-app-ui.vercel.app/r/utils.json",
     "https://hellno-mini-app-ui.vercel.app/r/chains.json",
     "https://hellno-mini-app-ui.vercel.app/r/text-utils.json",
