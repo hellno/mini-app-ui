@@ -52,19 +52,46 @@ jobs:
           # Wait for server to start
           sleep 2
 
-      - name: Configure shadcn to use local registry
+      - name: Build registry files
         run: |
-          cd test-app
-          # Update components.json to use our local registry
-          node -e "
-            const fs = require('fs');
-            const config = JSON.parse(fs.readFileSync('components.json', 'utf8'));
-            config.registries = {
-              '@hellno/mini-app-ui': 'http://localhost:8080/public/r'
-            };
-            fs.writeFileSync('components.json', JSON.stringify(config, null, 2));
-            console.log('Updated components.json with local registry');
-          "
+          cd registry-repo
+          # Install dependencies and build registry
+          pnpm install --frozen-lockfile
+          pnpm registry:build
+          
+      - name: Modify registry files for local testing
+        run: |
+          cd registry-repo/public/r
+          # Create a script to update registryDependencies to use full URLs
+          cat > update-deps.js << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          
+          // Get all JSON files
+          const files = fs.readdirSync('.').filter(f => f.endsWith('.json'));
+          
+          files.forEach(file => {
+            if (file === 'registry.json') return;
+            
+            const content = JSON.parse(fs.readFileSync(file, 'utf8'));
+            
+            // Update registryDependencies to use full URLs
+            if (content.registryDependencies) {
+              content.registryDependencies = content.registryDependencies.map(dep => {
+                // If it's already a URL, leave it
+                if (dep.startsWith('http')) return dep;
+                // Otherwise, convert to local URL
+                return `http://localhost:8080/public/r/${dep}.json`;
+              });
+            }
+            
+            fs.writeFileSync(file, JSON.stringify(content, null, 2));
+          });
+          
+          console.log('Updated registry files with local URLs');
+          EOF
+          
+          node update-deps.js
 
       - name: Test component installations
         run: |
@@ -92,8 +119,8 @@ jobs:
             
             TOTAL_COUNT=$((TOTAL_COUNT + 1))
             
-            # Run shadcn add command with timeout - using local server with registry name
-            if timeout 60 pnpm dlx shadcn@latest add "@hellno/mini-app-ui:${component}" --yes --overwrite; then
+            # Run shadcn add command with timeout - using direct URL to local server
+            if timeout 60 pnpm dlx shadcn@latest add "http://localhost:8080/public/r/${component}.json" --yes --overwrite; then
               echo "✅ $component installed successfully"
               SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
             else
