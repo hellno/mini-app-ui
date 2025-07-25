@@ -185,7 +185,7 @@ The repository uses Husky to run `pnpm lint` and `pnpm registry:build` before ea
 
 **Key Technologies:**
 - Next.js 15 with React 19
-- Farcaster Frame SDK (@farcaster/frame-sdk, @farcaster/frame-core)
+- Farcaster MiniApp SDK (@farcaster/miniapp-sdk, @farcaster/miniapp-core)
 - Daimo Pay integration (@daimo/pay, @daimo/contract)
 - Wagmi for Ethereum interaction
 - Tailwind CSS for styling

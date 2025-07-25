@@ -30,7 +30,7 @@
         "@daimo/contract",
         "wagmi",
         "viem",
-        "@farcaster/frame-wagmi-connector"
+        "@farcaster/miniapp-wagmi-connector"
       ],
       "registryDependencies": ["button"],
       "files": [
@@ -132,7 +132,7 @@
           "type": "registry:hook"
         }
       ],
-      "dependencies": ["@farcaster/frame-core", "@farcaster/frame-sdk"],
+      "dependencies": ["@farcaster/miniapp-core", "@farcaster/miniapp-sdk"],
       "registryDependencies": []
     },
     {
@@ -164,7 +164,7 @@
           "type": "registry:hook"
         }
       ],
-      "dependencies": ["@farcaster/frame-core", "@farcaster/frame-sdk"],
+      "dependencies": ["@farcaster/miniapp-core", "@farcaster/miniapp-sdk"],
       "registryDependencies": [
         "use-miniapp-sdk"
       ]
@@ -269,7 +269,7 @@
         "lucide-react",
         "wagmi",
         "viem",
-        "@farcaster/frame-wagmi-connector"
+        "@farcaster/miniapp-wagmi-connector"
       ],
       "devDependencies": [],
       "registryDependencies": [
