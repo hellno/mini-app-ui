@@ -79,10 +79,9 @@ type NFTMintFlowProps = {
 
   /**
    * Blockchain network ID
-   * - 1 = Ethereum mainnet
-   * - 8453 = Base mainnet
+   * Supports any valid chain ID
    */
-  chainId: 1 | 8453;
+  chainId: number;
 
   /**
    * Optional provider hint. Use when:
@@ -1021,7 +1020,7 @@ NFTMintButton.presets = {
    */
   generic: (props: {
     contractAddress: Address;
-    chainId: 1 | 8453;
+    chainId: number;
     amount?: number;
     buttonText?: string;
     onMintSuccess?: (txHash: string) => void;
@@ -1045,7 +1044,7 @@ NFTMintButton.presets = {
    */
   manifold: (props: {
     contractAddress: Address;
-    chainId: 1 | 8453;
+    chainId: number;
     instanceId: string;
     tokenId?: string;
     amount?: number;
@@ -1078,7 +1077,7 @@ NFTMintButton.presets = {
    */
   auto: (props: {
     contractAddress: Address;
-    chainId: 1 | 8453;
+    chainId: number;
     amount?: number;
     buttonText?: string;
     onMintSuccess?: (txHash: string) => void;

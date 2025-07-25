@@ -283,7 +283,7 @@ export async function fetchPriceData(
       contractInfo.claimCondition = {
         id: Number(activeConditionId),
         pricePerToken: pricePerToken as bigint,
-        currency: currency as string,
+        currency: currency as `0x${string}`,
         maxClaimableSupply: maxClaimableSupply as bigint,
         merkleRoot: merkleRoot as `0x${string}`,
         startTimestamp: Number(startTimestamp),
@@ -346,16 +346,14 @@ export async function fetchPriceData(
             allowance: allowance as bigint,
             balance: balance as bigint | undefined
           },
-          totalCost: BigInt(0), // No ETH needed for ERC20 payment
-          claim: contractInfo.claimCondition
+          totalCost: BigInt(0) // No ETH needed for ERC20 payment
         };
       } else {
         // ETH payment
         const totalCost = (pricePerToken as bigint) * BigInt(params.amount || 1);
         return {
           mintPrice: pricePerToken as bigint,
-          totalCost,
-          claim: contractInfo.claimCondition
+          totalCost
         };
       }
     } catch (err) {
