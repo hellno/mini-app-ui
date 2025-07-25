@@ -52,6 +52,20 @@ jobs:
           # Wait for server to start
           sleep 2
 
+      - name: Configure shadcn to use local registry
+        run: |
+          cd test-app
+          # Update components.json to use our local registry
+          node -e "
+            const fs = require('fs');
+            const config = JSON.parse(fs.readFileSync('components.json', 'utf8'));
+            config.registries = {
+              '@hellno/mini-app-ui': 'http://localhost:8080/public/r'
+            };
+            fs.writeFileSync('components.json', JSON.stringify(config, null, 2));
+            console.log('Updated components.json with local registry');
+          "
+
       - name: Test component installations
         run: |
           cd test-app
@@ -78,8 +92,8 @@ jobs:
             
             TOTAL_COUNT=$((TOTAL_COUNT + 1))
             
-            # Run shadcn add command with timeout - using local server
-            if timeout 60 pnpm dlx shadcn@latest add "http://localhost:8080/public/r/${component}.json" --yes --overwrite; then
+            # Run shadcn add command with timeout - using local server with registry name
+            if timeout 60 pnpm dlx shadcn@latest add "@hellno/mini-app-ui:${component}" --yes --overwrite; then
               echo "✅ $component installed successfully"
               SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
             else
