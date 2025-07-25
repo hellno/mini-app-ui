@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-export type NFTProvider = "manifold" | "opensea" | "zora" | "generic" | "nfts2me";
+export type NFTProvider = "manifold" | "opensea" | "zora" | "generic" | "nfts2me" | "thirdweb";
 
 export interface ProviderConfig {
   name: NFTProvider;
@@ -54,6 +54,15 @@ export interface NFTContractInfo {
     startDate: number;
     endDate: number;
     walletMax: number;
+  };
+  claimCondition?: {
+    id: number;
+    pricePerToken: bigint;
+    currency: Address;
+    maxClaimableSupply: bigint;
+    merkleRoot: `0x${string}`;
+    startTimestamp: number;
+    quantityLimitPerWallet: bigint;
   };
 }
 

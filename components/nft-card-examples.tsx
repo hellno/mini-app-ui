@@ -22,6 +22,15 @@ interface NFTExample {
 
 const nftExamples: NFTExample[] = [
   {
+    title: "Thirdweb OpenEdition",
+    description: "Thirdweb OpenEditionERC721",
+    contractAddress: "0xD2Ede6B7b1B08B2A8bB36118fBC0F76409719070",
+    tokenId: "1",
+    network: "celo",
+    titlePosition: "outside",
+    networkPosition: "outside",
+  },
+  {
     title: "Zora NFT",
     description: "NFT on Zora Network",
     contractAddress: "0xe03ef4b9db1a47464de84fb476f9baf493b3e886",

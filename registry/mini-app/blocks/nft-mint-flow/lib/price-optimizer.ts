@@ -1,6 +1,7 @@
 import type { PublicClient } from "viem";
 import type { NFTContractInfo, MintParams } from "@/registry/mini-app/blocks/nft-mint-flow/lib/types";
 import { getProviderConfig } from "@/registry/mini-app/blocks/nft-mint-flow/lib/provider-configs";
+import { THIRDWEB_OPENEDITONERC721_ABI, THIRDWEB_NATIVE_TOKEN } from "@/registry/mini-app/lib/nft-standards";
 
 /**
  * Optimized price discovery that batches RPC calls where possible
@@ -231,6 +232,134 @@ export async function fetchPriceData(
       mintPrice: creatorFeePerNFT * amount,
       totalCost: (creatorFeePerNFT + protocolFeePerNFT) * amount
     };
+  } else if (contractInfo.provider === "thirdweb") {
+    // thirdweb OpenEditionERC721 price discovery
+    try {
+      // First get the active claim condition ID
+      const claimCondition = await client.readContract({
+        address: params.contractAddress,
+        abi: THIRDWEB_OPENEDITONERC721_ABI,
+        functionName: "claimCondition"
+      });
+      
+      // Validate the response is an array with expected values
+      if (!Array.isArray(claimCondition) || claimCondition.length !== 2) {
+        throw new Error("Invalid claim condition response from contract");
+      }
+      
+      const [currentStartId, count] = claimCondition as [bigint, bigint];
+      
+      if (count === BigInt(0)) {
+        // No claim conditions set
+        return { mintPrice: BigInt(0), totalCost: BigInt(0) };
+      }
+      
+      // Get the active claim condition (last one)
+      const activeConditionId = currentStartId + count - BigInt(1);
+      
+      const condition = await client.readContract({
+        address: params.contractAddress,
+        abi: THIRDWEB_OPENEDITONERC721_ABI,
+        functionName: "getClaimConditionById",
+        args: [activeConditionId]
+      });
+      
+      if (!condition || typeof condition !== "object") {
+        throw new Error("Invalid claim condition response");
+      }
+      
+      const {
+        startTimestamp,
+        maxClaimableSupply,
+        supplyClaimed,
+        quantityLimitPerWallet,
+        merkleRoot,
+        pricePerToken,
+        currency,
+        metadata
+      } = condition as any;
+      
+      // Store claim condition in contractInfo for later use
+      contractInfo.claimCondition = {
+        id: Number(activeConditionId),
+        pricePerToken: pricePerToken as bigint,
+        currency: currency as `0x${string}`,
+        maxClaimableSupply: maxClaimableSupply as bigint,
+        merkleRoot: merkleRoot as `0x${string}`,
+        startTimestamp: Number(startTimestamp),
+        quantityLimitPerWallet: quantityLimitPerWallet as bigint
+      };
+      
+      // Check if it's ERC20 payment
+      if (currency && currency.toLowerCase() !== THIRDWEB_NATIVE_TOKEN.toLowerCase()) {
+        // ERC20 payment
+        const [symbol, decimals, allowance, balance] = await Promise.all([
+          client.readContract({
+            address: currency,
+            abi: [{ name: "symbol", type: "function", inputs: [], outputs: [{ type: "string" }], stateMutability: "view" }],
+            functionName: "symbol"
+          }),
+          client.readContract({
+            address: currency,
+            abi: [{ name: "decimals", type: "function", inputs: [], outputs: [{ type: "uint8" }], stateMutability: "view" }],
+            functionName: "decimals"
+          }),
+          params.recipient ? client.readContract({
+            address: currency,
+            abi: [{ 
+              name: "allowance", 
+              type: "function", 
+              inputs: [{ name: "owner", type: "address" }, { name: "spender", type: "address" }], 
+              outputs: [{ type: "uint256" }], 
+              stateMutability: "view" 
+            }],
+            functionName: "allowance",
+            args: [params.recipient, params.contractAddress]
+          }).catch(() => BigInt(0)) : Promise.resolve(undefined),
+          params.recipient ? client.readContract({
+            address: currency,
+            abi: [{ 
+              name: "balanceOf", 
+              type: "function", 
+              inputs: [{ name: "owner", type: "address" }], 
+              outputs: [{ type: "uint256" }], 
+              stateMutability: "view" 
+            }],
+            functionName: "balanceOf",
+            args: [params.recipient]
+          }).catch(() => BigInt(0)) : Promise.resolve(undefined)
+        ]);
+        
+        // Validate decimals
+        const validatedDecimals = Number(decimals);
+        if (isNaN(validatedDecimals) || validatedDecimals < 0 || validatedDecimals > 255) {
+          console.error(`Invalid ERC20 decimals for ${currency}:`, decimals);
+          throw new Error(`Invalid ERC20 decimals: ${decimals}`);
+        }
+        
+        return {
+          mintPrice: pricePerToken as bigint,
+          erc20Details: {
+            address: currency,
+            symbol: symbol as string,
+            decimals: validatedDecimals,
+            allowance: allowance as bigint,
+            balance: balance as bigint | undefined
+          },
+          totalCost: BigInt(0) // No ETH needed for ERC20 payment
+        };
+      } else {
+        // ETH payment
+        const totalCost = (pricePerToken as bigint) * BigInt(params.amount || 1);
+        return {
+          mintPrice: pricePerToken as bigint,
+          totalCost
+        };
+      }
+    } catch (err) {
+      console.error("Failed to fetch thirdweb price data:", err);
+      return { totalCost: BigInt(0) };
+    }
   } else {
     // Generic price discovery - try multiple function names
     const functionNames = config.priceDiscovery.functionNames;

@@ -117,7 +117,7 @@ pnpm dlx shadcn@latest add http://localhost:3000/r/nft-card.json --yes
    - Create shared libraries for common patterns
    - `/lib/chains.ts` - Chain configurations
    - `/lib/nft-standards.ts` - ABIs and utilities
-   - `/lib/manifold-utils.ts` - Contract-specific logic
+   - `/lib/nft-metadata-utils.ts` - NFT metadata fetching with comprehensive fallbacks
 
 ### Testing with Real Contracts
 

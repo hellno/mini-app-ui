@@ -13,6 +13,8 @@ export const ERC721_ABI = {
     "function ownerOf(uint256 tokenId) view returns (address)",
     "function balanceOf(address owner) view returns (uint256)",
     "function totalSupply() view returns (uint256)",
+    "function baseURI() view returns (string)",
+    "function contractURI() view returns (string)",
   ]),
   
   // Individual functions for specific use cases
@@ -20,6 +22,8 @@ export const ERC721_ABI = {
   name: parseAbi(["function name() view returns (string)"]),
   symbol: parseAbi(["function symbol() view returns (string)"]),
   ownerOf: parseAbi(["function ownerOf(uint256 tokenId) view returns (address)"]),
+  baseURI: parseAbi(["function baseURI() view returns (string)"]),
+  contractURI: parseAbi(["function contractURI() view returns (string)"]),
 };
 
 // Common price discovery functions across NFT contracts
@@ -38,6 +42,11 @@ export const MINT_ABI = parseAbi([
   "function publicMint(uint256 amount) payable",
   "function mintTo(address to, uint256 amount) payable",
 ]);
+
+// ERC1155 metadata function
+export const ERC1155_ABI = {
+  uri: parseAbi(["function uri(uint256 tokenId) view returns (string)"]),
+};
 
 // ERC20 ABI for token interactions
 export const ERC20_ABI = parseAbi([
@@ -171,6 +180,80 @@ export const KNOWN_CONTRACTS = {
   
   // Add other known contracts here as needed
 } as const;
+
+// thirdweb OpenEditionERC721 ABI
+export const THIRDWEB_OPENEDITONERC721_ABI = [
+  {
+    inputs: [
+      { name: "_receiver", type: "address" },
+      { name: "_quantity", type: "uint256" },
+      { name: "_currency", type: "address" },
+      { name: "_pricePerToken", type: "uint256" },
+      {
+        components: [
+          { name: "proof", type: "bytes32[]" },
+          { name: "quantityLimitPerWallet", type: "uint256" },
+          { name: "pricePerToken", type: "uint256" },
+          { name: "currency", type: "address" }
+        ],
+        name: "_allowlistProof",
+        type: "tuple"
+      },
+      { name: "_data", type: "bytes" }
+    ],
+    name: "claim",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "claimCondition",
+    outputs: [
+      { name: "currentStartId", type: "uint256" },
+      { name: "count", type: "uint256" }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ name: "_conditionId", type: "uint256" }],
+    name: "getClaimConditionById",
+    outputs: [
+      {
+        components: [
+          { name: "startTimestamp", type: "uint256" },
+          { name: "maxClaimableSupply", type: "uint256" },
+          { name: "supplyClaimed", type: "uint256" },
+          { name: "quantityLimitPerWallet", type: "uint256" },
+          { name: "merkleRoot", type: "bytes32" },
+          { name: "pricePerToken", type: "uint256" },
+          { name: "currency", type: "address" },
+          { name: "metadata", type: "string" }
+        ],
+        name: "condition",
+        type: "tuple"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "sharedMetadata",
+    outputs: [
+      { name: "name", type: "string" },
+      { name: "description", type: "string" },
+      { name: "image", type: "string" },
+      { name: "animationUrl", type: "string" }
+    ],
+    stateMutability: "view",
+    type: "function"
+  }
+] as const;
+
+// Native ETH address for thirdweb contracts
+export const THIRDWEB_NATIVE_TOKEN = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE" as Address;
 
 // Interface IDs for contract detection
 export const INTERFACE_IDS = {

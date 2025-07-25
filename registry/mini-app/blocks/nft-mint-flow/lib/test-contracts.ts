@@ -67,6 +67,34 @@ export const testContracts: TestContract[] = [
       mintFeeETH: "0.0005", // ETH platform fee
       nftCost: "1" // 1 USDC
     }
+  },
+  {
+    name: "thirdweb Free Mint",
+    params: {
+      contractAddress: "0x9D7FEB3351c71D3E87b059FE088e2B73C951727A", // Example thirdweb contract
+      chainId: 8453, // Base
+      provider: "thirdweb"
+    },
+    expected: {
+      provider: "thirdweb",
+      hasERC20: false,
+      mintFeeETH: "0", // Free mint
+      totalETH: "0"
+    }
+  },
+  {
+    name: "thirdweb ETH Payment",
+    params: {
+      contractAddress: "0x1234567890123456789012345678901234567890", // Example with ETH payment
+      chainId: 8453,
+      provider: "thirdweb"
+    },
+    expected: {
+      provider: "thirdweb",
+      hasERC20: false,
+      mintFeeETH: "0.001", // Example price
+      totalETH: "0.001"
+    }
   }
 ];
 
@@ -100,12 +128,12 @@ export async function runContractTests() {
     await delay(1000);
     
     try {
-      // Create contract info
+      // Create contract info based on provider
       const contractInfo: NFTContractInfo = {
         provider: test.params.provider as any,
-        isERC1155: true,
-        isERC721: false,
-        extensionAddress: KNOWN_CONTRACTS.manifoldExtension
+        isERC1155: test.params.provider === "manifold",
+        isERC721: test.params.provider === "thirdweb" || test.params.provider === "nfts2me",
+        extensionAddress: test.params.provider === "manifold" ? KNOWN_CONTRACTS.manifoldExtension : undefined
       };
       
       // Fetch price data

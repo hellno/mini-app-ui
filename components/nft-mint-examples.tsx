@@ -10,9 +10,19 @@ interface NFTMintExample {
   instanceId: string;
   tokenId: string;
   buttonText?: string;
+  chainId?: number;
 }
 
 const nftExamples: NFTMintExample[] = [
+  {
+    title: "Thirdweb OpenEdition",
+    description: "Thirdweb OpenEditionERC721 contract on Celo",
+    contractAddress: "0xD2Ede6B7b1B08B2A8bB36118fBC0F76409719070",
+    instanceId: "",
+    tokenId: "",
+    buttonText: "Mint Thirdweb NFT",
+    chainId: 42220, // Celo
+  },
   {
     title: "Test NFT - No Image",
     description: "Testing NFT processing for contract without metadata",
@@ -101,11 +111,14 @@ export function NFTMintExamples({
                 {example.instanceId && (
                   <div>Instance: {example.instanceId}</div>
                 )}
+                {example.chainId && example.chainId !== 8453 && (
+                  <div>Chain: {example.chainId === 42220 ? "Celo" : `ID ${example.chainId}`}</div>
+                )}
               </div>
 
               <NFTMintButton
                 contractAddress={example.contractAddress}
-                chainId={8453} // Base mainnet
+                chainId={example.chainId || 8453} // Use example chainId or default to Base
                 provider={
                   example.instanceId 
                     ? "manifold" 
