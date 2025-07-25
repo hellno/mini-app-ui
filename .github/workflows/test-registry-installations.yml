@@ -42,6 +42,16 @@ jobs:
           pnpm install
           echo -e "Y\n\n\n\n\n\n\n\n" | pnpm dlx shadcn@latest init
 
+      - name: Start local registry server
+        run: |
+          cd registry-repo
+          # Start a simple HTTP server to serve the registry files
+          python3 -m http.server 8080 &
+          SERVER_PID=$!
+          echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
+          # Wait for server to start
+          sleep 2
+
       - name: Test component installations
         run: |
           cd test-app
@@ -68,8 +78,8 @@ jobs:
             
             TOTAL_COUNT=$((TOTAL_COUNT + 1))
             
-            # Run shadcn add command with timeout
-            if timeout 60 pnpm dlx shadcn@latest add "https://hellno-mini-app-ui.vercel.app/r/${component}.json" --yes --overwrite; then
+            # Run shadcn add command with timeout - using local server
+            if timeout 60 pnpm dlx shadcn@latest add "http://localhost:8080/public/r/${component}.json" --yes --overwrite; then
               echo "✅ $component installed successfully"
               SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
             else
@@ -96,3 +106,10 @@ jobs:
           cd test-app
           echo "Installed component files:"
           find components lib hooks -type f -name "*.tsx" -o -name "*.ts" 2>/dev/null | sort || true
+
+      - name: Stop local server
+        if: always()
+        run: |
+          if [ ! -z "$SERVER_PID" ]; then
+            kill $SERVER_PID || true
+          fi
