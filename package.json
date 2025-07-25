@@ -10,14 +10,17 @@
     "lint": "next lint",
     "prepare": "husky",
     "test:nft": "tsx scripts/test-nft-contracts.ts",
-    "registry:build": "shadcn registry:build && node scripts/clean-registry.js && node scripts/generate-all-components.js"
+    "registry:build": "shadcn registry:build && node scripts/clean-registry.js",
+    "registry:test": "node scripts/test-registry-install.js",
+    "registry:test:build": "node scripts/test-registry-install.js --build",
+    "registry:test:keep": "node scripts/test-registry-install.js --keep"
   },
   "dependencies": {
     "@daimo/contract": "^1.6.0",
     "@daimo/pay": "^1.8.4",
-    "@farcaster/frame-core": "^0.0.40",
-    "@farcaster/frame-sdk": "^0.0.53",
-    "@farcaster/frame-wagmi-connector": "^0.0.39",
+    "@farcaster/miniapp-core": "^0.3.6",
+    "@farcaster/miniapp-sdk": "^0.1.7",
+    "@farcaster/miniapp-wagmi-connector": "^1.0.0",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-label": "^2.1.4",

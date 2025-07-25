@@ -67,6 +67,16 @@ const nftExamples: NFTExample[] = [
     networkPosition: "outside",
   },
   {
+    title: "Test NFT on Base",
+    description: "Testing NFT processing",
+    contractAddress: "0x8F843c58201197D20A4ed8AeC12ae8527c2c4d7b",
+    tokenId: "1",
+    network: "base",
+    titlePosition: "outside",
+    networkPosition: "outside",
+    layout: "detailed",
+  },
+  {
     title: "Azuki",
     description: "Title inside and blockchain in top right",
     contractAddress: "0xed5af388653567af2f388e6224dc7c4b3241c544",

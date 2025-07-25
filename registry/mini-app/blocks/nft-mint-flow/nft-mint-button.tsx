@@ -17,7 +17,7 @@ import {
   useSwitchChain,
 } from "wagmi";
 import { formatEther, type Address } from "viem";
-import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
+import { farcasterFrame } from "@farcaster/miniapp-wagmi-connector";
 import {
   Coins,
   CheckCircle,

@@ -30,7 +30,7 @@
         "@daimo/contract",
         "wagmi",
         "viem",
-        "@farcaster/frame-wagmi-connector"
+        "@farcaster/miniapp-wagmi-connector"
       ],
       "registryDependencies": ["button"],
       "files": [
@@ -52,7 +52,7 @@
       "dependencies": [],
       "registryDependencies": [
         "button",
-        "https://hellno-mini-app-ui.vercel.app/r/use-miniapp-sdk.json"
+        "use-miniapp-sdk"
       ],
 
       "meta": {
@@ -73,6 +73,34 @@
       ]
     },
     {
+      "name": "share-bottom-sheet",
+      "type": "registry:component",
+      "title": "Share Bottom Sheet",
+      "description": "A bottom sheet component for sharing content to Farcaster with customizable message",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "button",
+        "sheet",
+        "use-miniapp-sdk"
+      ],
+      "meta": {
+        "demoUrl": "/component/share-bottom-sheet",
+        "use_cases": [
+          "Social Sharing",
+          "Share Dialogs",
+          "Call-to-Action Prompts",
+          "Mobile-First Sharing"
+        ],
+        "keywords": ["share", "bottom-sheet", "cast", "farcaster", "social", "dialog", "modal"]
+      },
+      "files": [
+        {
+          "path": "registry/mini-app/blocks/share-bottom-sheet/share-bottom-sheet.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "add-miniapp-button",
       "type": "registry:component",
       "title": "Add MiniApp Button",
@@ -84,7 +112,7 @@
       "dependencies": [],
       "registryDependencies": [
         "button",
-        "https://hellno-mini-app-ui.vercel.app/r/use-miniapp-sdk.json"
+        "use-miniapp-sdk"
       ],
       "files": [
         {
@@ -104,7 +132,7 @@
           "type": "registry:hook"
         }
       ],
-      "dependencies": ["@farcaster/frame-core", "@farcaster/frame-sdk"],
+      "dependencies": ["@farcaster/miniapp-core", "@farcaster/miniapp-sdk"],
       "registryDependencies": []
     },
     {
@@ -136,9 +164,9 @@
           "type": "registry:hook"
         }
       ],
-      "dependencies": ["@farcaster/frame-core", "@farcaster/frame-sdk"],
+      "dependencies": ["@farcaster/miniapp-core", "@farcaster/miniapp-sdk"],
       "registryDependencies": [
-        "https://hellno-mini-app-ui.vercel.app/r/use-miniapp-sdk.json"
+        "use-miniapp-sdk"
       ]
     },
     {
@@ -208,24 +236,27 @@
       ]
     },
     {
-      "name": "profile-search",
+      "name": "onchain-user-search",
       "type": "registry:component",
-      "title": "Profile Search",
-      "description": "Search Farcaster users with Neynar API and view profiles using mini app SDK. Shows results in clickable cards with user details.",
-      "dependencies": ["lucide-react"],
+      "title": "Onchain User Search",
+      "description": "Unified search for team members and friends across Farcaster usernames, ENS names, and Ethereum addresses. Resolves in all three directions with onchain address as primary interface.",
+      "dependencies": ["lucide-react", "viem"],
       "registryDependencies": [
         "button",
         "input",
-        "https://hellno-mini-app-ui.vercel.app/r/use-miniapp-sdk.json",
-        "https://hellno-mini-app-ui.vercel.app/r/utils.json"
+        "use-miniapp-sdk",
+        "https://hellno-mini-app-ui.vercel.app/r/utils.json",
+        "https://hellno-mini-app-ui.vercel.app/r/chains.json",
+        "https://hellno-mini-app-ui.vercel.app/r/text-utils.json",
+        "https://hellno-mini-app-ui.vercel.app/r/address-utils.json"
       ],
       "meta": {
-        "use_cases": ["User Search", "Profile Lookup"],
-        "keywords": ["search", "profiles", "neynar", "farcaster", "sdk"]
+        "use_cases": ["User Search", "Profile Lookup", "Address Resolution", "ENS Resolution", "Team Member Search"],
+        "keywords": ["search", "profiles", "neynar", "farcaster", "ens", "address", "ethereum", "onchain"]
       },
       "files": [
         {
-          "path": "registry/mini-app/blocks/profile-search/profile-search.tsx",
+          "path": "registry/mini-app/blocks/onchain-user-search/onchain-user-search.tsx",
           "type": "registry:component"
         }
       ]
@@ -238,13 +269,13 @@
         "lucide-react",
         "wagmi",
         "viem",
-        "@farcaster/frame-wagmi-connector"
+        "@farcaster/miniapp-wagmi-connector"
       ],
       "devDependencies": [],
       "registryDependencies": [
         "button",
         "sheet",
-        "https://hellno-mini-app-ui.vercel.app/r/use-miniapp-sdk.json",
+        "use-miniapp-sdk",
         "https://hellno-mini-app-ui.vercel.app/r/chains.json",
         "https://hellno-mini-app-ui.vercel.app/r/nft-standards.json",
         "https://hellno-mini-app-ui.vercel.app/r/nft-card.json"
@@ -340,6 +371,20 @@
         }
       ],
       "dependencies": [],
+      "registryDependencies": []
+    },
+    {
+      "name": "address-utils",
+      "type": "registry:lib",
+      "title": "addressUtils",
+      "description": "Utility functions for Ethereum address formatting, validation, and input type detection",
+      "files": [
+        {
+          "path": "registry/mini-app/lib/address-utils.ts",
+          "type": "registry:lib"
+        }
+      ],
+      "dependencies": ["viem"],
       "registryDependencies": []
     },
     {

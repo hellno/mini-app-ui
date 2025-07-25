@@ -20,21 +20,54 @@ Website: [https://hellno-mini-app-ui.vercel.app](https://hellno-mini-app-ui.verc
 
 Website: [https://hellno-mini-app-ui.vercel.app](https://hellno-mini-app-ui.vercel.app)
 
-### Install a component
+### Quick Start (Recommended)
 
-Example to install simple token transfer button:
+Install the most popular components:
 
 ```bash
+# NFT display and minting
+pnpm dlx shadcn@latest add https://hellno-mini-app-ui.vercel.app/r/nft-card.json
+pnpm dlx shadcn@latest add https://hellno-mini-app-ui.vercel.app/r/nft-mint-flow.json
+
+# User search (Farcaster, ENS, addresses)  
+pnpm dlx shadcn@latest add https://hellno-mini-app-ui.vercel.app/r/onchain-user-search.json
+
+# Payment button
 pnpm dlx shadcn@latest add https://hellno-mini-app-ui.vercel.app/r/daimo-pay-transfer-button.json
+```
+
+### Install individual components
+
+```bash
+pnpm dlx shadcn@latest add https://hellno-mini-app-ui.vercel.app/r/[component-name].json
 ```
 
 ### Install all components
 
+Install all components with a single command:
+
 ```bash
-pnpm dlx shadcn@latest add https://hellno-mini-app-ui.vercel.app/r/all-components.json
+# Default: Skip existing files
+curl -sSL https://hellno-mini-app-ui.vercel.app/r/install-all.sh | bash
+
+# Force overwrite existing files
+curl -sSL https://hellno-mini-app-ui.vercel.app/r/install-all-overwrite.sh | bash
 ```
 
-This will install all available components and their dependencies at once.
+### Local Development
+
+When developing the registry locally:
+
+```bash
+# Start the registry locally first (in mini-app-ui repo)
+pnpm dev
+
+# Install individual components from localhost
+pnpm dlx shadcn@latest add http://localhost:3000/r/nft-card.json --yes
+
+# Note: install-all.sh may reference production URLs in dependencies
+# For local development, install components individually
+```
 
 
 ## Component Development Guide
