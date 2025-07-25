@@ -222,7 +222,7 @@
         "https://hellno-mini-app-ui.vercel.app/r/utils.json",
         "https://hellno-mini-app-ui.vercel.app/r/chains.json",
         "https://hellno-mini-app-ui.vercel.app/r/nft-standards.json",
-        "https://hellno-mini-app-ui.vercel.app/r/manifold-utils.json"
+        "https://hellno-mini-app-ui.vercel.app/r/nft-metadata-utils.json"
       ],
       "meta": {
         "use_cases": ["NFT Showcase", "Digital Collectibles Display"],
@@ -344,10 +344,26 @@
       "registryDependencies": []
     },
     {
+      "name": "nft-metadata-utils",
+      "type": "registry:lib",
+      "title": "nftMetadataUtils",
+      "description": "NFT metadata utilities with support for multiple standards including Manifold, Thirdweb, ERC721, and ERC1155",
+      "files": [
+        {
+          "path": "registry/mini-app/lib/nft-metadata-utils.ts",
+          "type": "registry:lib"
+        }
+      ],
+      "dependencies": ["viem"],
+      "registryDependencies": [
+        "https://hellno-mini-app-ui.vercel.app/r/nft-standards.json"
+      ]
+    },
+    {
       "name": "manifold-utils",
       "type": "registry:lib",
       "title": "manifoldUtils",
-      "description": "Manifold contract detection and token URI utilities",
+      "description": "DEPRECATED: Use nft-metadata-utils instead. Kept for backward compatibility.",
       "files": [
         {
           "path": "registry/mini-app/lib/manifold-utils.ts",
@@ -356,7 +372,7 @@
       ],
       "dependencies": ["viem"],
       "registryDependencies": [
-        "https://hellno-mini-app-ui.vercel.app/r/nft-standards.json"
+        "https://hellno-mini-app-ui.vercel.app/r/nft-metadata-utils.json"
       ]
     },
     {

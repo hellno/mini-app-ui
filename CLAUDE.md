@@ -64,7 +64,7 @@ export function NFTCard(props: NFTCardProps) {
 Always use these shared libraries instead of creating duplicates:
 - **Chains**: `/registry/mini-app/lib/chains.ts` - RPC configuration, chain detection
 - **NFT Standards**: `/registry/mini-app/lib/nft-standards.ts` - ABIs and constants
-- **Manifold Utils**: `/registry/mini-app/lib/manifold-utils.ts` - Manifold-specific logic
+- **NFT Metadata Utils**: `/registry/mini-app/lib/nft-metadata-utils.ts` - NFT metadata fetching with comprehensive fallbacks
 
 ### Component Organization Pattern
 

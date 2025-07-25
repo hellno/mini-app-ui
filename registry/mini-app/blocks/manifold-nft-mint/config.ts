@@ -2,7 +2,7 @@ import { type Address } from "viem";
 import { Config } from "./manifold-nft-mint";
 import { getPublicClient } from "@/registry/mini-app/lib/chains";
 import { MANIFOLD_DETECTION_ABI, MANIFOLD_EXTENSION_ABI, KNOWN_CONTRACTS, ERC20_ABI } from "@/registry/mini-app/lib/nft-standards";
-import { isZeroAddress } from "@/registry/mini-app/lib/manifold-utils";
+import { isZeroAddress } from "@/registry/mini-app/lib/nft-metadata-utils";
 
 export type Claim = {
   total: number;

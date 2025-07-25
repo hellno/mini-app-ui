@@ -34,6 +34,7 @@ import {
   validateParameters,
   getClientForChain,
 } from "@/registry/mini-app/blocks/nft-mint-flow/lib/provider-detector";
+import { getChainById } from "@/registry/mini-app/lib/chains";
 import { getProviderConfig } from "@/registry/mini-app/blocks/nft-mint-flow/lib/provider-configs";
 import { fetchPriceData } from "@/registry/mini-app/blocks/nft-mint-flow/lib/price-optimizer";
 import { mintReducer, initialState, type MintStep } from "@/registry/mini-app/blocks/nft-mint-flow/lib/mint-reducer";
@@ -237,12 +238,13 @@ export function NFTMintButton({
 
   // Get provider config
   const providerConfig = contractInfo
-    ? getProviderConfig(contractInfo.provider)
+    ? getProviderConfig(contractInfo.provider, contractInfo)
     : null;
 
   // Check if user is on the correct network
   const isCorrectNetwork = chain?.id === chainId;
-  const networkName = chainId === 1 ? "Ethereum" : chainId === 8453 ? "Base" : "Unknown";
+  const targetChain = getChainById(chainId);
+  const networkName = targetChain.name || "Unknown";
 
   // Handle transaction status updates
   React.useEffect(() => {

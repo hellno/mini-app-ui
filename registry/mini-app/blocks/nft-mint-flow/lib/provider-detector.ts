@@ -5,7 +5,8 @@ import { getPublicClient } from "@/registry/mini-app/lib/chains";
 import { 
   ERC165_ABI, 
   INTERFACE_IDS, 
-  MANIFOLD_DETECTION_ABI 
+  MANIFOLD_DETECTION_ABI,
+  THIRDWEB_OPENEDITONERC721_ABI
 } from "@/registry/mini-app/lib/nft-standards";
 
 // Re-export from shared library for backward compatibility
@@ -110,6 +111,34 @@ export async function detectNFTProvider(params: MintParams): Promise<NFTContract
       // Not an NFTs2Me contract, continue detection
     }
 
+    // Check if it's a thirdweb OpenEditionERC721 contract
+    try {
+      // Try to call claimCondition and sharedMetadata - unique to thirdweb
+      const [claimConditionResult, sharedMetadataResult] = await Promise.all([
+        client.readContract({
+          address: contractAddress,
+          abi: THIRDWEB_OPENEDITONERC721_ABI,
+          functionName: "claimCondition"
+        }).catch(() => null),
+        client.readContract({
+          address: contractAddress,
+          abi: THIRDWEB_OPENEDITONERC721_ABI,
+          functionName: "sharedMetadata"
+        }).catch(() => null)
+      ]);
+      
+      // If both functions exist, it's a thirdweb contract
+      if (claimConditionResult !== null && sharedMetadataResult !== null) {
+        return {
+          provider: "thirdweb",
+          isERC1155: isERC1155 as boolean,
+          isERC721: isERC721 as boolean
+        };
+      }
+    } catch {
+      // Not a thirdweb contract, continue detection
+    }
+
     // TODO: Add detection for OpenSea, Zora, etc.
     // For now, return generic
     return {
@@ -157,6 +186,19 @@ export function validateParameters(params: MintParams, contractInfo: NFTContract
     
     if (contractInfo.claim?.merkleRoot && contractInfo.claim.merkleRoot !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
       errors.push("This NFT requires a merkle proof for minting - not supported yet");
+    }
+  }
+
+  if (contractInfo.provider === "thirdweb") {
+    if (contractInfo.claimCondition?.merkleRoot && contractInfo.claimCondition.merkleRoot !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
+      errors.push("This NFT requires a merkle proof for minting - not supported yet");
+    }
+    
+    if (contractInfo.claimCondition?.startTimestamp) {
+      const now = Math.floor(Date.now() / 1000);
+      if (now < contractInfo.claimCondition.startTimestamp) {
+        errors.push("Claim has not started yet");
+      }
     }
   }
 
