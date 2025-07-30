@@ -71,6 +71,15 @@ const nftExamples: NFTMintExample[] = [
     tokenId: "1",
     buttonText: "Mint NFT (USDC ERC20)",
   },
+  {
+    title: "Manifold Video NFT",
+    description: "NFT with video content as animation",
+    contractAddress: "0xc9Fda06ab3015Cec0F803684baaF3fFdb692F42b",
+    instanceId: "3763024112",
+    tokenId: "1",
+    buttonText: "Mint Video NFT",
+    chainId: 8453, // Base
+  },
 ];
 
 export function NFTMintExamples({

@@ -76,6 +76,15 @@ const nftExamples: NFTExample[] = [
     networkPosition: "outside",
   },
   {
+    title: "Manifold Video NFT",
+    description: "NFT with video animation",
+    contractAddress: "0xc9Fda06ab3015Cec0F803684baaF3fFdb692F42b",
+    tokenId: "1",
+    network: "base",
+    titlePosition: "outside",
+    networkPosition: "outside",
+  },
+  {
     title: "Test NFT on Base",
     description: "Testing NFT processing",
     contractAddress: "0x8F843c58201197D20A4ed8AeC12ae8527c2c4d7b",
@@ -152,15 +161,14 @@ export function NftCardExamples({
               <NFTCard
                 contractAddress={example.contractAddress}
                 tokenId={example.tokenId}
-                width={isMobile ? 250 : 200}
-                height={isMobile ? 250 : 200}
                 network={example.network}
-                customTitle={example.customTitle}
-                titlePosition={example.titlePosition}
-                networkPosition={example.networkPosition}
-                layout={example.layout}
-                rounded="lg"
-                shadow={true}
+                size={isMobile ? 250 : 200}
+                displayOptions={{
+                  showTitle: true,
+                  showNetwork: true,
+                  rounded: "lg",
+                  shadow: true,
+                }}
                 className="mx-auto text-center"
               />
             </div>

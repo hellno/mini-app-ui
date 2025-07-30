@@ -9,6 +9,7 @@ interface NFTMetadata {
   description?: string;
   image?: string;
   image_url?: string;
+  animation_url?: string;
   external_url?: string;
   attributes?: Array<{
     trait_type: string;
@@ -42,79 +43,55 @@ const PLACEHOLDER_IMAGE =
   "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YxZjFmMSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGZpbGw9IiM5OTkiPk5GVCBJbWFnZTwvdGV4dD48L3N2Zz4=";
 
 
-type NFTCardProps = {
+interface NFTCardProps {
+  // Essential props
   contractAddress: string;
   tokenId: string;
   network?: string;
-  alt?: string;
+  
+  // Display size - single prop that handles both dimensions
+  size?: number | string;
+  
+  // All display options grouped (all optional with smart defaults)
+  displayOptions?: {
+    showTitle?: boolean;
+    showNetwork?: boolean; 
+    rounded?: "none" | "sm" | "md" | "lg" | "xl" | "full";
+    shadow?: boolean;
+  };
+  
+  // Standard React props
   className?: string;
-  width?: number | string;
-  height?: number | string;
-  rounded?: "none" | "sm" | "md" | "lg" | "xl" | "full";
-  shadow?: boolean;
-  objectFit?: "contain" | "cover" | "fill";
-  fallbackImageUrl?: string;
-  showTitle?: boolean;
-  showNetwork?: boolean;
-  titlePosition?: "top" | "bottom" | "outside";
-  networkPosition?:
-    | "top-left"
-    | "top-right"
-    | "bottom-left"
-    | "bottom-right"
-    | "outside";
-  customTitle?: string;
-  customNetworkName?: string;
-  loadingComponent?: React.ReactNode;
-  errorComponent?: React.ReactNode;
-  imageProps?: React.ComponentProps<typeof Image>;
-  titleClassName?: string;
-  networkClassName?: string;
-  showOwner?: boolean;
   onLoad?: (metadata: NFTMetadata) => void;
   onError?: (error: Error) => void;
-  layout?: "compact" | "card" | "detailed";
-  containerClassName?: string;
-};
+}
 
 export function NFTCard({
   contractAddress,
   tokenId,
-  network = "ethereum", // Default to Ethereum mainnet
-  alt = "NFT Image",
+  network = "ethereum",
+  size = 300,
+  displayOptions = {},
   className = "",
-  width = 300,
-  height = 300,
-  rounded = "md",
-  shadow = true,
-  objectFit = "cover",
-  fallbackImageUrl = PLACEHOLDER_IMAGE,
-  showTitle = true,
-  showNetwork = true,
-  titlePosition = "outside",
-  networkPosition = "top-right",
-  customTitle,
-  customNetworkName,
-  loadingComponent,
-  errorComponent,
-  imageProps,
-  titleClassName = "",
-  networkClassName = "",
-  showOwner = false,
   onLoad,
   onError,
-  layout = "card",
-  containerClassName = "",
 }: NFTCardProps) {
-  const [imageUrl, setImageUrl] = useState<string>(fallbackImageUrl);
+  // Extract display options with defaults
+  const {
+    showTitle = true,
+    showNetwork = true,
+    rounded = "md",
+    shadow = true,
+  } = displayOptions;
+  const [imageUrl, setImageUrl] = useState<string>(PLACEHOLDER_IMAGE);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [title, setTitle] = useState<string | null>(customTitle || null);
-  const [networkName, setNetworkName] = useState<string>(
-    customNetworkName || "",
-  );
-  const [owner, setOwner] = useState<string | null>(null);
+  const [title, setTitle] = useState<string | null>(null);
+  const [networkName, setNetworkName] = useState<string>("");
   const [metadata, setMetadata] = useState<NFTMetadata | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [videoDimensions, setVideoDimensions] = useState<{ width: number; height: number } | null>(null);
+  const [isVideo, setIsVideo] = useState<boolean>(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const roundedClasses = {
@@ -134,15 +111,6 @@ export function NFTCard({
     outside: "",
   };
 
-  useEffect(() => {
-    if (customTitle) {
-      setTitle(customTitle);
-    }
-
-    if (customNetworkName) {
-      setNetworkName(customNetworkName);
-    }
-  }, [customTitle, customNetworkName]);
 
   useEffect(() => {
     const fetchNFTData = async () => {
@@ -161,60 +129,41 @@ export function NFTCard({
       setError(null);
 
       try {
-        // Skip chain setup if we have customNetworkName
-        if (!customNetworkName) {
-          // Find the chain by name using shared utility
-          const selectedChain = findChainByName(network || "ethereum");
-          
-          if (!selectedChain) {
-            console.warn(
-              `Chain "${network}" not found, defaulting to Ethereum mainnet`,
-            );
-            setNetworkName("Ethereum");
-          } else {
-            setNetworkName(selectedChain.name);
-          }
-
-          // Create public client using shared utility
-          const client = getPublicClient(selectedChain?.id || 1);
-
-          console.log(
-            `Fetching NFT data from ${selectedChain?.name || 'Ethereum'} for contract ${contractAddress} token ${tokenId}`,
+        // Find the chain by name using shared utility
+        const selectedChain = findChainByName(network || "ethereum");
+        
+        if (!selectedChain) {
+          console.warn(
+            `Chain "${network}" not found, defaulting to Ethereum mainnet`,
           );
+          setNetworkName("Ethereum");
+        } else {
+          setNetworkName(selectedChain.name);
+        }
 
-          // Skip title setup if we have customTitle
-          if (!customTitle) {
-            try {
-              // Get contract name
-              const name = (await client.readContract({
-                address: getAddress(contractAddress),
-                abi: ERC721_ABI.name,
-                functionName: "name",
-              })) as string;
+        // Create public client using shared utility
+        const client = getPublicClient(selectedChain?.id || 1);
 
-              // Set title
-              setTitle(`${name} #${tokenId}`);
-            } catch (nameError) {
-              console.warn("Could not fetch NFT name:", nameError);
-              setTitle(`NFT #${tokenId}`);
-            }
-          }
+        console.log(
+          `Fetching NFT data from ${selectedChain?.name || 'Ethereum'} for contract ${contractAddress} token ${tokenId}`,
+        );
 
-          // Get owner if requested
-          if (showOwner) {
-            try {
-              const ownerAddress = (await client.readContract({
-                address: getAddress(contractAddress),
-                abi: ERC721_ABI.ownerOf,
-                functionName: "ownerOf",
-                args: [BigInt(tokenId)],
-              })) as string;
+        // Get contract name for title
+        try {
+          // Get contract name
+          const name = (await client.readContract({
+            address: getAddress(contractAddress),
+            abi: ERC721_ABI.name,
+            functionName: "name",
+          })) as string;
 
-              setOwner(ownerAddress);
-            } catch (ownerError) {
-              console.warn("Could not fetch NFT owner:", ownerError);
-            }
-          }
+          // Set title
+          setTitle(`${name} #${tokenId}`);
+        } catch (nameError) {
+          console.warn("Could not fetch NFT name:", nameError);
+          setTitle(`NFT #${tokenId}`);
+        }
+
 
           // Get tokenURI with comprehensive metadata support
           let metadataUrl = await getTokenMetadataURL(
@@ -258,9 +207,15 @@ export function NFTCard({
             setImageUrl(nftImageUrl);
           } else {
             // If no image URL found, use placeholder
-            setImageUrl(fallbackImageUrl);
+            setImageUrl(PLACEHOLDER_IMAGE);
           }
-        }
+
+          // Check for animation URL (video content)
+          if (fetchedMetadata.animation_url) {
+            const animationUrl = ipfsToHttp(fetchedMetadata.animation_url);
+            setVideoUrl(animationUrl);
+            setIsVideo(true);
+          }
       } catch (err) {
         // Don't update state if request was aborted
         if (err instanceof Error && err.name === "AbortError") {
@@ -271,7 +226,7 @@ export function NFTCard({
         console.error("Error fetching NFT:", err);
         const error = err instanceof Error ? err : new Error(String(err));
         setError(`Failed to load NFT data: ${error.message}`);
-        setImageUrl(fallbackImageUrl);
+        setImageUrl(PLACEHOLDER_IMAGE);
 
         // Call onError callback if provided
         if (onError) {
@@ -297,10 +252,6 @@ export function NFTCard({
     contractAddress,
     tokenId,
     network,
-    fallbackImageUrl,
-    customTitle,
-    customNetworkName,
-    showOwner,
     onLoad,
     onError,
   ]);
@@ -319,15 +270,14 @@ export function NFTCard({
 
   // Render network badge inside the image
   const renderNetworkBadge = () => {
-    if (!showNetwork || !networkName || networkPosition === "outside")
+    if (!showNetwork || !networkName)
       return null;
 
     return (
       <div
         className={cn(
           "absolute bg-black/60 px-2 py-1 text-white text-xs",
-          networkPositionClasses[networkPosition],
-          networkClassName,
+          networkPositionClasses["top-right"],
         )}
       >
         {networkName}
@@ -337,130 +287,106 @@ export function NFTCard({
 
   // Render title inside the image
   const renderInnerTitle = () => {
-    if (!showTitle || !title || titlePosition === "outside") return null;
+    if (!showTitle || !title) return null;
 
     return (
       <div
         className={cn(
           "absolute left-0 right-0 bg-black/60 p-2 text-white text-sm truncate",
-          titlePosition === "top" ? "top-0" : "bottom-0",
-          titleClassName,
+          "bottom-0",
         )}
       >
         {title}
-        {showOwner && owner && (
-          <div className="text-xs opacity-70 truncate">
-            Owner: {owner.substring(0, 6)}...{owner.substring(owner.length - 4)}
-          </div>
-        )}
       </div>
     );
   };
 
-  // Render outside information (title, network, owner)
+  // Render outside information (title, network)
   const renderOutsideInfo = () => {
     if (
       (!showTitle || !title) &&
-      (!showNetwork || !networkName || networkPosition !== "outside") &&
-      (!showOwner || !owner || titlePosition !== "outside")
+      (!showNetwork || !networkName)
     ) {
       return null;
     }
 
     return (
       <div className="mt-2">
-        {showTitle && title && titlePosition === "outside" && (
-          <div className={cn("text-sm font-medium truncate", titleClassName)}>
+        {showTitle && title && (
+          <div className={cn("text-sm font-medium truncate")}>
             {title}
           </div>
         )}
 
-        {showNetwork && networkName && networkPosition === "outside" && (
+        {showNetwork && networkName && (
           <div
             className={cn(
               "text-xs text-gray-500 dark:text-gray-400",
-              networkClassName,
-            )}
+                )}
           >
             Network: {networkName}
           </div>
         )}
 
-        {showOwner && owner && titlePosition === "outside" && (
-          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-            Owner: {owner.substring(0, 6)}...{owner.substring(owner.length - 4)}
-          </div>
-        )}
       </div>
     );
   };
 
-  // Apply different layouts
+  // Apply container classes
   const getContainerClasses = () => {
-    switch (layout) {
-      case "compact":
-        return "inline-block";
-      case "detailed":
-        return "flex flex-col overflow-hidden";
-      case "card":
-      default:
-        return "";
-    }
+    return "";
   };
 
   // Calculate display dimensions that preserve aspect ratio
   const getDisplayDimensions = () => {
     // Handle percentage values
-    const isPercentageWidth = typeof width === "string" && width.includes("%");
-    const isPercentageHeight = typeof height === "string" && height.includes("%");
+    const isPercentageSize = typeof size === "string" && size.includes("%");
     
-    if (isPercentageWidth || isPercentageHeight) {
+    if (isPercentageSize) {
       return { 
-        width: width || '100%', 
-        height: height || '100%', 
+        width: size, 
+        height: size, 
         useContain: false,
         isPercentage: true
       };
     }
     
-    const maxWidth = typeof width === "number" ? width : 300;
-    const maxHeight = typeof height === "number" ? height : 300;
+    const numericSize = typeof size === "number" ? size : 300;
     
     // Check if we have image_details with dimensions
     if (metadata?.image_details?.width && metadata?.image_details?.height) {
       const originalAspectRatio = metadata.image_details.width / metadata.image_details.height;
       
       // Scale to fit within bounds while preserving aspect ratio
-      const widthBasedHeight = maxWidth / originalAspectRatio;
-      const heightBasedWidth = maxHeight * originalAspectRatio;
-      
-      if (widthBasedHeight <= maxHeight) {
-        // Width is the limiting factor
-        return { 
-          width: maxWidth, 
-          height: Math.round(widthBasedHeight),
-          useContain: true, // Use contain to show full image
-          isPercentage: false
-        };
-      } else {
-        // Height is the limiting factor
-        return { 
-          width: Math.round(heightBasedWidth), 
-          height: maxHeight,
-          useContain: true,
-          isPercentage: false
-        };
-      }
+      // For images/videos with known dimensions, always use square container but contain the content
+      return { 
+        width: numericSize, 
+        height: numericSize,
+        useContain: true,
+        isPercentage: false
+      };
     }
     
-    // No image_details, use provided dimensions
-    return { width: maxWidth, height: maxHeight, useContain: false, isPercentage: false };
+    // No image_details, use square dimensions
+    return { width: numericSize, height: numericSize, useContain: false, isPercentage: false };
   };
 
   const displayDimensions = getDisplayDimensions();
+  
+  // Auto-detect videos and apply flexible aspect ratio
+  const shouldUseFlexibleHeight = isVideo && videoDimensions;
+  
+  // Calculate container height based on video dimensions for videos
+  const containerHeight = shouldUseFlexibleHeight 
+    ? (displayDimensions.isPercentage 
+        ? displayDimensions.height 
+        : `${Math.round((parseFloat(String(displayDimensions.width)) * videoDimensions.height) / videoDimensions.width)}px`)
+    : (displayDimensions.isPercentage 
+        ? displayDimensions.height 
+        : `${displayDimensions.height}px`);
 
   return (
-    <div className={cn(getContainerClasses(), containerClassName)}>
+    <div className={cn(getContainerClasses())}>
       <div
         className={cn(
           "relative overflow-hidden",
@@ -472,27 +398,60 @@ export function NFTCard({
           width: displayDimensions.isPercentage 
             ? displayDimensions.width 
             : `${displayDimensions.width}px`, 
-          height: displayDimensions.isPercentage 
-            ? displayDimensions.height 
-            : `${displayDimensions.height}px` 
+          height: containerHeight
         }}
       >
-        {isLoading && (loadingComponent || defaultLoadingComponent)}
+        {isLoading && defaultLoadingComponent}
 
-        {error && (errorComponent || defaultErrorComponent)}
+        {error && defaultErrorComponent}
 
-        <Image
-          src={imageUrl}
-          alt={alt}
-          fill={true}
-          className={cn(
-            displayDimensions.useContain || displayDimensions.isPercentage ? "object-contain" : `object-${objectFit}`,
-            isLoading && "opacity-0"
-          )}
-          unoptimized={true}
-          onError={() => setImageUrl(PLACEHOLDER_IMAGE)}
-          {...imageProps}
-        />
+        {videoUrl ? (
+          <>
+            {/* Background for letterboxing - only show if not using flexible aspect ratio */}
+            {!shouldUseFlexibleHeight && (
+              <div className="absolute inset-0 bg-black/5 dark:bg-white/5" />
+            )}
+            <video
+              src={videoUrl}
+              poster={imageUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className={cn(
+                shouldUseFlexibleHeight ? "w-full h-full" : "absolute inset-0 w-full h-full",
+                !shouldUseFlexibleHeight && "object-contain",
+                isLoading && "opacity-0"
+              )}
+              style={{ 
+                objectFit: shouldUseFlexibleHeight ? "cover" : "contain"
+              }}
+              onLoadedMetadata={(e) => {
+                const video = e.currentTarget;
+                setVideoDimensions({
+                  width: video.videoWidth,
+                  height: video.videoHeight
+                });
+              }}
+              onError={() => {
+                console.error("Video failed to load, falling back to image");
+                setVideoUrl(null);
+              }}
+            />
+          </>
+        ) : (
+          <Image
+            src={imageUrl}
+            alt="NFT Image"
+            fill={true}
+            className={cn(
+              "object-contain",
+              isLoading && "opacity-0"
+            )}
+            unoptimized={true}
+            onError={() => setImageUrl(PLACEHOLDER_IMAGE)}
+          />
+        )}
 
         {renderInnerTitle()}
         {renderNetworkBadge()}

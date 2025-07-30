@@ -140,14 +140,13 @@ export function NFTMintFlow({
         contractAddress={contractAddress}
         tokenId={tokenId}
         network={network}
-        width={containerWidth}
-        height={containerWidth}
-        rounded="xl"
-        shadow={true}
-        showTitle={true}
-        showNetwork={true}
-        titlePosition="outside"
-        networkPosition="outside"
+        size={containerWidth}
+        displayOptions={{
+          showTitle: true,
+          showNetwork: true,
+          rounded: "xl",
+          shadow: true,
+        }}
       />
       
       <NFTMintButton
