@@ -18,24 +18,37 @@ This is a Next.js-based component registry for Farcaster mini apps, built using 
 
 ### Code Patterns
 
-#### ✅ GOOD: Self-contained with flat props
+#### ✅ GOOD: Simplified interface with grouped display options
 ```tsx
 <NFTCard 
   contractAddress="0x..." 
   tokenId="1"
   network="ethereum"
-  showTitle={true}
-  showOwner={false}
+  size={300}  // Single size prop
+  displayOptions={{  // Optional, has smart defaults
+    showTitle: true,
+    showNetwork: true,
+    rounded: "lg",
+    shadow: true
+  }}
 />
 ```
 
-#### ❌ BAD: Nested config objects
+#### ❌ BAD: Too many flat props
 ```tsx
 <NFTCard 
-  config={{ 
-    contract: { address: "0x...", tokenId: "1" },
-    display: { showTitle: true, showOwner: false }
-  }}
+  contractAddress="0x..."
+  tokenId="1"
+  network="ethereum"
+  width={300}
+  height={300}
+  rounded="lg"
+  shadow={true}
+  showTitle={true}
+  showNetwork={true}
+  titlePosition="outside"
+  networkPosition="top-right"
+  // ... 20+ more props
 />
 ```
 

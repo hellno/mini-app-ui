@@ -56,8 +56,11 @@ export function NFTShowcaseDemo({ showHeader = true }: { showHeader?: boolean })
     contractAddress="0x..."
     tokenId="1"
     network="base"
-    width={350}
-    height={350}
+    size={350}
+    displayOptions={{
+      showTitle: true,
+      showNetwork: true
+    }}
   />
   <NFTMintFlow
     contractAddress="0x..."
@@ -69,7 +72,13 @@ export function NFTShowcaseDemo({ showHeader = true }: { showHeader?: boolean })
 
 // Alternative: Use consistent container
 <div className="max-w-sm space-y-4">
-  <NFTCard className="w-full" />
+  <NFTCard 
+    contractAddress="0x..."
+    tokenId="1"
+    network="base"
+    size="100%"
+    className="w-full"
+  />
   <NFTMintFlow className="w-full" />
 </div>`}</code>
           </pre>
