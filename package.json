@@ -8,9 +8,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:registry": "eslint 'registry/**/*.{ts,tsx}' --config registry/.eslintrc.js",
+    "check:quotes": "node scripts/check-registry-quotes.js",
     "prepare": "husky",
     "test:nft": "tsx scripts/test-nft-contracts.ts",
-    "registry:build": "shadcn registry:build && node scripts/clean-registry.js",
+    "registry:build": "pnpm check:quotes && shadcn registry:build && node scripts/clean-registry.js",
     "registry:test": "node scripts/test-registry-install.js",
     "registry:test:build": "node scripts/test-registry-install.js --build",
     "registry:test:keep": "node scripts/test-registry-install.js --keep"

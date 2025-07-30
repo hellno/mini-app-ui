@@ -334,9 +334,9 @@ The shadcn CLI sometimes adds extra quotes around string literals during install
 
 3. **Test registry output** - After running `pnpm registry:build`, check the generated JSON files in `public/r/` to ensure no transformation issues
 
-### Critical: TypeScript typeof Comparisons
+### Critical: String Literal Transformation Issues
 
-The shadcn CLI has a bug where it adds extra quotes around string literals in typeof comparisons, breaking TypeScript builds:
+The shadcn CLI has a bug where it adds extra quotes around string literals, breaking code during installation:
 
 ```typescript
 // BEFORE installation (in registry):
@@ -370,3 +370,54 @@ if (typeof value === 'string') { }  // Will break during installation
 - BigInt validation: `typeof id !== "bigint"`
 
 **Always run `pnpm registry:build` and test installation before committing!**
+
+## Enforcement and Prevention
+
+### Automated Checks
+
+1. **ESLint Rule**: `quotes: ["error", "double"]` enforces double quotes
+2. **Pre-commit Hook**: Runs `pnpm check:quotes` to catch issues before commit
+3. **Registry Build**: Includes quote validation in the build process
+
+### Manual Checks
+
+Run these commands to validate registry files:
+
+```bash
+# Check for single quote usage
+pnpm check:quotes
+
+# Lint registry files specifically
+pnpm lint:registry
+
+# Full registry build with validation
+pnpm registry:build
+```
+
+### For AI/LLMs Generating Registry Code
+
+**CRITICAL RULES:**
+1. ALWAYS use double quotes (") for all string literals
+2. NEVER use single quotes (') in registry components
+3. Check the file path - if it contains `/registry/`, apply these rules strictly
+4. Common patterns that MUST use double quotes:
+   - Event names: `addEventListener("click")`
+   - Error checks: `err.name === "AbortError"`  
+   - Type checks: `typeof x === "string"`
+   - Console logs: `console.log("message")`
+
+### Registry File Marker
+
+All registry files should include this comment header:
+
+```typescript
+/**
+ * @shadcn-registry
+ * 
+ * IMPORTANT: This file is part of the shadcn registry.
+ * Always use double quotes (") instead of single quotes (') to prevent
+ * transformation issues during component installation.
+ * 
+ * See: /CLAUDE.md#shadcn-cli-transformation-issues
+ */
+```

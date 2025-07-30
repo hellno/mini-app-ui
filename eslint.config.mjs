@@ -31,6 +31,22 @@ const eslintConfig = [
       // General rules
       "no-console": ["warn", { allow: ["warn", "error"] }],
       "prefer-const": "warn",
+      
+      // Note: quotes rule is enforced only in registry files to prevent shadcn CLI issues
+    }
+  },
+  // Special rules for registry components to prevent shadcn CLI transformation issues
+  {
+    files: ["registry/**/*.{ts,tsx,js,jsx}"],
+    rules: {
+      "quotes": ["error", "double", { 
+        "avoidEscape": true,
+        "allowTemplateLiterals": true 
+      }],
+      "@typescript-eslint/quotes": ["error", "double", {
+        "avoidEscape": true,
+        "allowTemplateLiterals": true
+      }],
     }
   }
 ];
