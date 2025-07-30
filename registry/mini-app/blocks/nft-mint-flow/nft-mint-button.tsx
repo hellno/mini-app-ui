@@ -823,14 +823,17 @@ export function NFTMintButton({
             </div>
 
             <Button
-              onClick={isConnected ? handleMint : handleConnectWallet}
+              onClick={
+                !isConnected 
+                  ? handleConnectWallet 
+                  : !isCorrectNetwork 
+                  ? handleSwitchNetwork 
+                  : handleMint
+              }
               size="lg"
               className="w-full"
-              disabled={
-                isWritePending ||
-                !isReadyToMint() ||
-                (!isCorrectNetwork && isConnected)
-              }
+              variant={!isConnected || !isCorrectNetwork ? "outline" : "default"}
+              disabled={isWritePending || (!isReadyToMint() && isCorrectNetwork)}
             >
               {isConnected ? (
                 !isCorrectNetwork ? (
