@@ -119,7 +119,7 @@ export function NFTMintExamples({
               <NFTMintButton
                 contractAddress={example.contractAddress}
                 chainId={example.chainId || 8453} // Use example chainId or default to Base
-                provider={
+                forceProvider={
                   example.instanceId 
                     ? "manifold" 
                     : undefined

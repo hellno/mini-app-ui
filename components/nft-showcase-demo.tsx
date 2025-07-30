@@ -21,7 +21,7 @@ export function NFTShowcaseDemo({ showHeader = true }: { showHeader?: boolean })
           tokenId="2"
           network="base"
           chainId={8453}
-          provider="manifold"
+          forceProvider="manifold"
           manifoldParams={{
             instanceId: "4293509360",
             tokenId: "2"
