@@ -1,12 +1,16 @@
 import { type Address, type PublicClient } from "viem";
-import type { NFTProvider, NFTContractInfo, MintParams } from "@/registry/mini-app/blocks/nft-mint-flow/lib/types";
+import type {
+  NFTProvider,
+  NFTContractInfo,
+  MintParams,
+} from "@/registry/mini-app/blocks/nft-mint-flow/lib/types";
 import { PROVIDER_CONFIGS } from "@/registry/mini-app/blocks/nft-mint-flow/lib/provider-configs";
 import { getPublicClient } from "@/registry/mini-app/lib/chains";
-import { 
-  ERC165_ABI, 
-  INTERFACE_IDS, 
+import {
+  ERC165_ABI,
+  INTERFACE_IDS,
   MANIFOLD_DETECTION_ABI,
-  THIRDWEB_OPENEDITONERC721_ABI
+  THIRDWEB_OPENEDITONERC721_ABI,
 } from "@/registry/mini-app/lib/nft-standards";
 
 // Re-export from shared library for backward compatibility
@@ -16,70 +20,88 @@ export const getClientForChain = getPublicClient;
  * Detects NFT provider and contract info with minimal RPC calls
  * Uses multicall where possible to batch requests
  */
-export async function detectNFTProvider(params: MintParams): Promise<NFTContractInfo> {
+export async function detectNFTProvider(
+  params: MintParams,
+): Promise<NFTContractInfo> {
   const { contractAddress, chainId, provider: specifiedProvider } = params;
   const client = getClientForChain(chainId);
 
+  console.log(
+    `[Provider Detection] Starting for contract ${contractAddress} on chain ${chainId}`,
+  );
+
   // If provider is specified, use known configuration
   if (specifiedProvider) {
+    console.log(
+      `[Provider Detection] Using specified provider: ${specifiedProvider}`,
+    );
     const config = PROVIDER_CONFIGS[specifiedProvider];
-    
+
     // For Manifold, we know the extension address
     if (specifiedProvider === "manifold" && config.extensionAddresses?.[0]) {
       return {
         provider: "manifold",
-        isERC1155: true,  // Manifold contracts are typically ERC1155
+        isERC1155: true, // Manifold contracts are typically ERC1155
         isERC721: false,
         extensionAddress: config.extensionAddresses[0],
-        hasManifoldExtension: true
+        hasManifoldExtension: true,
       };
     }
-    
+
     // For other providers, return basic info
     return {
       provider: specifiedProvider,
       isERC1155: false,
-      isERC721: false
+      isERC721: false,
     };
   }
 
   try {
     // Batch 1: Check interfaces and Manifold extensions in parallel
     const [isERC721, isERC1155, extensions] = await Promise.all([
-      client.readContract({
-        address: contractAddress,
-        abi: ERC165_ABI,
-        functionName: "supportsInterface",
-        args: [INTERFACE_IDS.ERC721]
-      }).catch(() => false),
-      
-      client.readContract({
-        address: contractAddress,
-        abi: ERC165_ABI,
-        functionName: "supportsInterface",
-        args: [INTERFACE_IDS.ERC1155]
-      }).catch(() => false),
-      
-      client.readContract({
-        address: contractAddress,
-        abi: MANIFOLD_DETECTION_ABI,
-        functionName: "getExtensions"
-      }).catch(() => null)
+      client
+        .readContract({
+          address: contractAddress,
+          abi: ERC165_ABI,
+          functionName: "supportsInterface",
+          args: [INTERFACE_IDS.ERC721],
+        })
+        .catch(() => false),
+
+      client
+        .readContract({
+          address: contractAddress,
+          abi: ERC165_ABI,
+          functionName: "supportsInterface",
+          args: [INTERFACE_IDS.ERC1155],
+        })
+        .catch(() => false),
+
+      client
+        .readContract({
+          address: contractAddress,
+          abi: MANIFOLD_DETECTION_ABI,
+          functionName: "getExtensions",
+        })
+        .catch(() => null),
     ]);
 
     // Check if it's a Manifold contract
     if (extensions && extensions.length > 0) {
-      const knownManifoldExtension = extensions.find(ext => 
-        PROVIDER_CONFIGS.manifold.extensionAddresses?.includes(ext)
+      const knownManifoldExtension = extensions.find((ext) =>
+        PROVIDER_CONFIGS.manifold.extensionAddresses?.includes(ext),
       );
-      
+
       if (knownManifoldExtension || extensions.length > 0) {
+        console.log(
+          `[Provider Detection] ✅ Detected as Manifold (has extensions)`,
+        );
         return {
           provider: "manifold",
           isERC1155: isERC1155 as boolean,
           isERC721: isERC721 as boolean,
           extensionAddress: knownManifoldExtension || extensions[0],
-          hasManifoldExtension: true
+          hasManifoldExtension: true,
         };
       }
     }
@@ -89,22 +111,27 @@ export async function detectNFTProvider(params: MintParams): Promise<NFTContract
       // Try to call n2mVersion - this is unique to NFTs2Me contracts
       const version = await client.readContract({
         address: contractAddress,
-        abi: [{
-          inputs: [],
-          name: "n2mVersion",
-          outputs: [{ name: "", type: "uint256" }],
-          stateMutability: "pure",
-          type: "function"
-        }],
-        functionName: "n2mVersion"
+        abi: [
+          {
+            inputs: [],
+            name: "n2mVersion",
+            outputs: [{ name: "", type: "uint256" }],
+            stateMutability: "pure",
+            type: "function",
+          },
+        ],
+        functionName: "n2mVersion",
       });
-      
+
       // If n2mVersion exists, it's an NFTs2Me contract
       if (version !== undefined) {
+        console.log(
+          `[Provider Detection] ✅ Detected as NFTs2Me (n2mVersion: ${version})`,
+        );
         return {
           provider: "nfts2me",
           isERC1155: isERC1155 as boolean,
-          isERC721: isERC721 as boolean
+          isERC721: isERC721 as boolean,
         };
       }
     } catch {
@@ -112,48 +139,49 @@ export async function detectNFTProvider(params: MintParams): Promise<NFTContract
     }
 
     // Check if it's a thirdweb OpenEditionERC721 contract
+    // Thirdweb contracts have a unique claimCondition() function that returns (uint256, uint256)
+    console.log(`[Thirdweb Detection] Checking contract: ${contractAddress}`);
     try {
-      // Try to call claimCondition and sharedMetadata - unique to thirdweb
-      const [claimConditionResult, sharedMetadataResult] = await Promise.all([
-        client.readContract({
-          address: contractAddress,
-          abi: THIRDWEB_OPENEDITONERC721_ABI,
-          functionName: "claimCondition"
-        }).catch(() => null),
-        client.readContract({
-          address: contractAddress,
-          abi: THIRDWEB_OPENEDITONERC721_ABI,
-          functionName: "sharedMetadata"
-        }).catch(() => null)
-      ]);
-      
-      // If both functions exist, it's a thirdweb contract
-      if (claimConditionResult !== null && sharedMetadataResult !== null) {
-        return {
-          provider: "thirdweb",
-          isERC1155: isERC1155 as boolean,
-          isERC721: isERC721 as boolean
-        };
-      }
-    } catch {
+      const claimConditionResult = await client.readContract({
+        address: contractAddress,
+        abi: [
+          {
+            inputs: [],
+            name: "claimCondition",
+            outputs: [
+              { name: "currentStartId", type: "uint256" },
+              { name: "count", type: "uint256" },
+            ],
+            stateMutability: "view",
+            type: "function",
+          },
+        ],
+        functionName: "claimCondition",
+      });
+    } catch (error) {
+      console.log(
+        `[Thirdweb Detection] ❌ Not Thirdweb - claimCondition check failed`,
+      );
       // Not a thirdweb contract, continue detection
     }
 
     // TODO: Add detection for OpenSea, Zora, etc.
     // For now, return generic
+    console.log(
+      `[Provider Detection] Final result: Generic provider (no specific platform detected)`,
+    );
     return {
       provider: "generic",
       isERC1155: isERC1155 as boolean,
-      isERC721: isERC721 as boolean
+      isERC721: isERC721 as boolean,
     };
-
   } catch (error) {
     console.error("Error detecting NFT provider:", error);
     // Default to generic provider
     return {
       provider: "generic",
       isERC1155: false,
-      isERC721: false
+      isERC721: false,
     };
   }
 }
@@ -161,7 +189,10 @@ export async function detectNFTProvider(params: MintParams): Promise<NFTContract
 /**
  * Validates parameters based on detected provider
  */
-export function validateParameters(params: MintParams, contractInfo: NFTContractInfo): {
+export function validateParameters(
+  params: MintParams,
+  contractInfo: NFTContractInfo,
+): {
   isValid: boolean;
   missingParams: string[];
   errors: string[];
@@ -183,17 +214,29 @@ export function validateParameters(params: MintParams, contractInfo: NFTContract
       errors.push("Manifold NFTs require either instanceId or tokenId");
       missingParams.push("instanceId or tokenId");
     }
-    
-    if (contractInfo.claim?.merkleRoot && contractInfo.claim.merkleRoot !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
-      errors.push("This NFT requires a merkle proof for minting - not supported yet");
+
+    if (
+      contractInfo.claim?.merkleRoot &&
+      contractInfo.claim.merkleRoot !==
+        "0x0000000000000000000000000000000000000000000000000000000000000000"
+    ) {
+      errors.push(
+        "This NFT requires a merkle proof for minting - not supported yet",
+      );
     }
   }
 
   if (contractInfo.provider === "thirdweb") {
-    if (contractInfo.claimCondition?.merkleRoot && contractInfo.claimCondition.merkleRoot !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
-      errors.push("This NFT requires a merkle proof for minting - not supported yet");
+    if (
+      contractInfo.claimCondition?.merkleRoot &&
+      contractInfo.claimCondition.merkleRoot !==
+        "0x0000000000000000000000000000000000000000000000000000000000000000"
+    ) {
+      errors.push(
+        "This NFT requires a merkle proof for minting - not supported yet",
+      );
     }
-    
+
     if (contractInfo.claimCondition?.startTimestamp) {
       const now = Math.floor(Date.now() / 1000);
       if (now < contractInfo.claimCondition.startTimestamp) {
@@ -205,6 +248,6 @@ export function validateParameters(params: MintParams, contractInfo: NFTContract
   return {
     isValid: missingParams.length === 0 && errors.length === 0,
     missingParams,
-    errors
+    errors,
   };
 }

@@ -174,10 +174,10 @@ export function NFTMintButton({
       );
     }
 
-    if (chainId !== 1 && chainId !== 8453) {
+    if (chainId !== 1 && chainId !== 8453 && chainId !== 42220) {
       console.warn(
         `NFTMintFlow: Chain ID ${chainId} may not be supported. ` +
-          "Currently tested chains: 1 (Ethereum), 8453 (Base)",
+          "Currently tested chains: 1 (Ethereum), 8453 (Base), 42220 (Celo)",
       );
     }
 

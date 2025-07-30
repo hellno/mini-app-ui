@@ -32,7 +32,7 @@ export const SUPPORTED_CHAINS = [
     } as const,
     alchemyPrefix: null,
   },
-  { id: 42220, chain: chains.celo, alchemyPrefix: null },
+  { id: 42220, chain: chains.celo, alchemyPrefix: "celo-mainnet" },
 ] as const;
 
 /**
