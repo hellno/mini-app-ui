@@ -14,8 +14,8 @@ export function InstallSnippet({ installName }: InstallSnippetProps) {
   const [tab, setTab] = React.useState<"pnpm" | "npm" | "bun">("pnpm");
   const [copied, setCopied] = React.useState(false);
   
-  // Use APP_URL from environment variable
-  const appUrl = process.env.APP_URL || 'http://localhost:3000';
+  // Use NEXT_PUBLIC_URL from environment variable
+  const appUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
   
   const command = React.useMemo(() => {
     switch (tab) {
