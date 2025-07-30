@@ -360,22 +360,6 @@
       ]
     },
     {
-      "name": "manifold-utils",
-      "type": "registry:lib",
-      "title": "manifoldUtils",
-      "description": "DEPRECATED: Use nft-metadata-utils instead. Kept for backward compatibility.",
-      "files": [
-        {
-          "path": "registry/mini-app/lib/manifold-utils.ts",
-          "type": "registry:lib"
-        }
-      ],
-      "dependencies": ["viem"],
-      "registryDependencies": [
-        "https://hellno-mini-app-ui.vercel.app/r/nft-metadata-utils.json"
-      ]
-    },
-    {
       "name": "text-utils",
       "type": "registry:lib",
       "title": "textUtils",
