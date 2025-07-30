@@ -10,7 +10,6 @@ import {
   ERC165_ABI,
   INTERFACE_IDS,
   MANIFOLD_DETECTION_ABI,
-  THIRDWEB_OPENEDITONERC721_ABI,
 } from "@/registry/mini-app/lib/nft-standards";
 
 // Re-export from shared library for backward compatibility
@@ -158,6 +157,43 @@ export async function detectNFTProvider(
         ],
         functionName: "claimCondition",
       });
+      
+      // Verify the result is a valid tuple with 2 uint256 values
+      if (Array.isArray(claimConditionResult) && claimConditionResult.length === 2) {
+        console.log(`[Thirdweb Detection] ✅ Found claimCondition: startId=${claimConditionResult[0]}, count=${claimConditionResult[1]}`);
+        
+        // Optional: Quick validation of sharedMetadata to reduce false positives
+        try {
+          await client.readContract({
+            address: contractAddress,
+            abi: [
+              {
+                inputs: [],
+                name: "sharedMetadata",
+                outputs: [
+                  { name: "name", type: "string" },
+                  { name: "description", type: "string" },
+                  { name: "imageURI", type: "string" },
+                  { name: "animationURI", type: "string" },
+                ],
+                stateMutability: "view",
+                type: "function",
+              },
+            ],
+            functionName: "sharedMetadata",
+          });
+          console.log(`[Thirdweb Detection] ✅ Confirmed with sharedMetadata`);
+        } catch {
+          // sharedMetadata not found, but claimCondition is strong enough signal
+          console.log(`[Thirdweb Detection] ⚠️ sharedMetadata not found, but claimCondition is sufficient`);
+        }
+        
+        return {
+          provider: "thirdweb",
+          isERC1155: isERC1155 as boolean,
+          isERC721: isERC721 as boolean,
+        };
+      }
     } catch (error) {
       console.log(
         `[Thirdweb Detection] ❌ Not Thirdweb - claimCondition check failed`,

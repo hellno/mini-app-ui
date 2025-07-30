@@ -37,36 +37,54 @@ import {
 import { getChainById } from "@/registry/mini-app/lib/chains";
 import { getProviderConfig } from "@/registry/mini-app/blocks/nft-mint-flow/lib/provider-configs";
 import { fetchPriceData } from "@/registry/mini-app/blocks/nft-mint-flow/lib/price-optimizer";
-import { mintReducer, initialState, type MintStep } from "@/registry/mini-app/blocks/nft-mint-flow/lib/mint-reducer";
+import {
+  mintReducer,
+  initialState,
+  type MintStep,
+} from "@/registry/mini-app/blocks/nft-mint-flow/lib/mint-reducer";
 import type { MintParams } from "@/registry/mini-app/blocks/nft-mint-flow/lib/types";
-import { parseError, type ParsedError } from "@/registry/mini-app/blocks/nft-mint-flow/lib/error-parser";
+import {
+  parseError,
+  type ParsedError,
+} from "@/registry/mini-app/blocks/nft-mint-flow/lib/error-parser";
 
 /**
  * NFTMintButton - Universal NFT minting button with automatic provider detection and ERC20 approval handling
  *
+ * The button automatically detects the NFT provider (Manifold, OpenSea, Zora, etc.) by analyzing
+ * the contract. You only need to specify the provider if auto-detection fails or you want to
+ * override the detection.
+ *
  * @example
  * ```tsx
- * // Basic ETH mint (auto-detects provider)
+ * // Basic mint - auto-detects provider and handles everything
  * <NFTMintButton
  *   contractAddress="0x5b97886E4e1fC0F7d19146DEC03C917994b3c3a4"
  *   chainId={1}
  * />
  *
- * // Manifold NFT with ERC20 payment (HIGHER token)
+ * // Manifold NFT - auto-detected, just provide the required params
  * <NFTMintButton
  *   contractAddress="0x32dd0a7190b5bba94549a0d04659a9258f5b1387"
  *   chainId={8453}
- *   provider="manifold"
- *   manifoldParams={{ instanceId: "4293509360", tokenId: "2" }}
+ *   manifoldParams={{ instanceId: "4293509360" }}
  * />
  *
- * // Multiple NFTs with custom button
+ * // Force specific provider (only if auto-detection is wrong)
+ * <NFTMintButton
+ *   contractAddress="0x..."
+ *   chainId={8453}
+ *   forceProvider="manifold"
+ *   manifoldParams={{ instanceId: "123" }}
+ * />
+ *
+ * // Multiple NFTs with success callback
  * <NFTMintButton
  *   contractAddress="0x..."
  *   chainId={8453}
  *   amount={5}
  *   buttonText="Mint 5 NFTs"
- *   onMintSuccess={(txHash) => console.log('Minted!', txHash)}
+ *   onMintSuccess={(txHash) => console.log("Minted!", txHash)}
  * />
  * ```
  */
@@ -84,14 +102,19 @@ type NFTMintFlowProps = {
   chainId: number;
 
   /**
-   * Optional provider hint. Use when:
-   * - Auto-detection is failing
-   * - You know the provider and want faster loading
-   * - Testing specific provider flows
-   *
-   * Leave undefined for automatic detection.
+   * Force a specific NFT provider instead of auto-detection
+   * 
+   * By default, the component auto-detects the provider by analyzing the contract.
+   * Only use this prop if:
+   * - Auto-detection is returning the wrong provider
+   * - You need to test a specific provider's flow
+   * - The contract has non-standard implementation
+   * 
+   * Note: "generic" is not an option here - it's used internally as a fallback.
+   * 
+   * @default undefined (auto-detect)
    */
-  provider?: "manifold" | "opensea" | "zora" | "generic";
+  forceProvider?: "manifold" | "opensea" | "zora";
 
   /**
    * Number of NFTs to mint. Defaults to 1.
@@ -100,14 +123,29 @@ type NFTMintFlowProps = {
   amount?: number;
 
   /**
-   * Manifold-specific parameters. Required when provider="manifold".
-   * - instanceId: The claim instance ID from Manifold (required for most Manifold NFTs)
-   * - tokenId: The specific token ID (required for some editions)
-   *
-   * Find these in the Manifold claim page URL or contract details.
+   * Manifold-specific parameters
+   * 
+   * Required when minting Manifold NFTs (auto-detected or forced).
+   * The component will show an error if these are missing for Manifold contracts.
+   * 
+   * @example
+   * // For claim-based mints (most common)
+   * manifoldParams={{ instanceId: "4293509360" }}
+   * 
+   * // For specific edition mints
+   * manifoldParams={{ tokenId: "2" }}
+   * 
+   * // Some contracts need both
+   * manifoldParams={{ instanceId: "4293509360", tokenId: "2" }}
+   * 
+   * Find these values in:
+   * - Manifold claim page URL: /instance/{instanceId}
+   * - Contract read functions: getClaim() or getClaimForToken()
    */
   manifoldParams?: {
+    /** Claim instance ID from Manifold Studio */
     instanceId?: string;
+    /** Specific token ID for edition mints */
     tokenId?: string;
   };
 
@@ -139,7 +177,7 @@ type NFTMintFlowProps = {
 export function NFTMintButton({
   contractAddress,
   chainId,
-  provider,
+  forceProvider,
   amount = 1,
   manifoldParams,
   className,
@@ -152,41 +190,36 @@ export function NFTMintButton({
 }: NFTMintFlowProps) {
   const [state, dispatch] = React.useReducer(mintReducer, initialState);
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
-  const [parsedError, setParsedError] = React.useState<ParsedError | null>(null);
+  const [parsedError, setParsedError] = React.useState<ParsedError | null>(
+    null,
+  );
 
   // Prop validation with helpful errors
   React.useEffect(() => {
     if (
-      provider === "manifold" &&
+      forceProvider === "manifold" &&
       !manifoldParams?.instanceId &&
       !manifoldParams?.tokenId
     ) {
       console.error(
-        "NFTMintFlow: When provider='manifold', you must provide manifoldParams with either instanceId or tokenId. " +
-          "Example: manifoldParams={{ instanceId: '4293509360' }}",
+        "NFTMintButton: When forceProvider=\"manifold\", you must provide manifoldParams with either instanceId or tokenId. " +
+          "Example: manifoldParams={{ instanceId: \"4293509360\" }}",
       );
     }
 
-    if (manifoldParams && provider !== "manifold") {
+    if (manifoldParams && forceProvider && forceProvider !== "manifold") {
       console.warn(
-        "NFTMintFlow: manifoldParams provided but provider is not 'manifold'. " +
-          "Did you forget to set provider='manifold'?",
-      );
-    }
-
-    if (chainId !== 1 && chainId !== 8453 && chainId !== 42220) {
-      console.warn(
-        `NFTMintFlow: Chain ID ${chainId} may not be supported. ` +
-          "Currently tested chains: 1 (Ethereum), 8453 (Base), 42220 (Celo)",
+        "NFTMintButton: manifoldParams provided but forceProvider is not \"manifold\". " +
+          "These params will be ignored for non-Manifold providers.",
       );
     }
 
     if (!contractAddress || !contractAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
       console.error(
-        "NFTMintFlow: Invalid contract address. Must be a valid Ethereum address (0x...)",
+        "NFTMintButton: Invalid contract address. Must be a valid Ethereum address (0x...)",
       );
     }
-  }, [provider, manifoldParams, chainId, contractAddress]);
+  }, [forceProvider, manifoldParams, chainId, contractAddress]);
 
   // Destructure commonly used values
   const {
@@ -217,13 +250,13 @@ export function NFTMintButton({
     () => ({
       contractAddress,
       chainId,
-      provider,
+      provider: forceProvider,
       amount,
       instanceId: manifoldParams?.instanceId,
       tokenId: manifoldParams?.tokenId,
       recipient: address,
     }),
-    [contractAddress, chainId, provider, amount, manifoldParams, address],
+    [contractAddress, chainId, forceProvider, amount, manifoldParams, address],
   );
 
   // Watch for transaction completion
@@ -249,14 +282,17 @@ export function NFTMintButton({
   React.useEffect(() => {
     if (writeError) {
       const parsed = parseError(writeError, txType || "mint");
-      
+
       // Show retry option for user rejections
       if (parsed.type === "user-rejected") {
         setParsedError(parsed);
-        dispatch({ type: "TX_ERROR", payload: "Transaction cancelled by user" });
+        dispatch({
+          type: "TX_ERROR",
+          payload: "Transaction cancelled by user",
+        });
         return;
       }
-      
+
       setParsedError(parsed);
       dispatch({ type: "TX_ERROR", payload: writeError.message });
       if (txType === "mint") {
@@ -479,7 +515,7 @@ export function NFTMintButton({
         args: [spenderAddress, contractInfo.claim.cost],
         chainId,
       });
-      
+
       // The transaction has been initiated - we'll track it via writeData in the effect
     } catch (err) {
       handleError(err, "Approval failed", "approval");
@@ -504,7 +540,7 @@ export function NFTMintButton({
       dispatch({ type: "MINT_START" });
 
       const args = providerConfig.mintConfig.buildArgs(mintParams);
-      
+
       const value = priceData.totalCost || BigInt(0);
 
       // Handle Manifold's special case
@@ -513,10 +549,9 @@ export function NFTMintButton({
           ? contractInfo.extensionAddress
           : contractAddress;
 
-      
       // Prepare contract config based on provider type
       let contractConfig: any;
-      
+
       contractConfig = {
         address: mintAddress,
         abi: providerConfig.mintConfig.abi,
@@ -528,7 +563,7 @@ export function NFTMintButton({
 
       // Execute the transaction
       await writeContract(contractConfig);
-      
+
       // The transaction has been initiated - we'll track it via writeData in the effect
     } catch (err) {
       handleError(err, "Mint transaction failed", "mint");
@@ -543,11 +578,11 @@ export function NFTMintButton({
   ) => {
     console.error(`${context}:`, error);
     const message = error instanceof Error ? error.message : `${context}`;
-    
+
     // Parse the error for better UX
     const parsed = parseError(error, transactionType || "mint");
     setParsedError(parsed);
-    
+
     dispatch({ type: "TX_ERROR", payload: message });
     // Use explicit transaction type if provided, otherwise fall back to state
     if ((transactionType || txType) === "mint") {
@@ -650,7 +685,10 @@ export function NFTMintButton({
             {step === "waiting" &&
               (txType === "approval" ? "Approving..." : "Minting...")}
             {step === "success" && "Mint Successful!"}
-            {step === "error" && (parsedError?.type === "user-rejected" ? "Transaction Cancelled" : "Transaction Failed")}
+            {step === "error" &&
+              (parsedError?.type === "user-rejected"
+                ? "Transaction Cancelled"
+                : "Transaction Failed")}
             {step === "validation-error" && "Missing Information"}
           </SheetTitle>
         </SheetHeader>
@@ -752,7 +790,7 @@ export function NFTMintButton({
                 </div>
               </div>
             )}
-            
+
             <div className="space-y-4">
               <div className="flex justify-between items-center py-3 border-b">
                 <span className="text-muted-foreground">Provider</span>
@@ -788,14 +826,20 @@ export function NFTMintButton({
               onClick={isConnected ? handleMint : handleConnectWallet}
               size="lg"
               className="w-full"
-              disabled={isWritePending || !isReadyToMint() || (!isCorrectNetwork && isConnected)}
+              disabled={
+                isWritePending ||
+                !isReadyToMint() ||
+                (!isCorrectNetwork && isConnected)
+              }
             >
               {isConnected ? (
                 !isCorrectNetwork ? (
                   <>
                     <RefreshCw className="h-4 w-4 mr-2" />
                     <span className="sm:hidden">Switch Network</span>
-                    <span className="hidden sm:inline">Switch Network to Mint</span>
+                    <span className="hidden sm:inline">
+                      Switch Network to Mint
+                    </span>
                   </>
                 ) : (
                   <>
@@ -807,7 +851,9 @@ export function NFTMintButton({
                 <>
                   <Wallet className="h-4 w-4 mr-2" />
                   <span className="sm:hidden">Connect</span>
-                  <span className="hidden sm:inline">Connect Wallet to Mint</span>
+                  <span className="hidden sm:inline">
+                    Connect Wallet to Mint
+                  </span>
                 </>
               )}
             </Button>
@@ -906,10 +952,14 @@ export function NFTMintButton({
           <div className="space-y-6">
             <div className="text-center space-y-4">
               <div className="flex justify-center">
-                <div className={cn(
-                  "p-3 rounded-full",
-                  parsedError?.type === "user-rejected" ? "bg-yellow-50" : "bg-red-50"
-                )}>
+                <div
+                  className={cn(
+                    "p-3 rounded-full",
+                    parsedError?.type === "user-rejected"
+                      ? "bg-yellow-50"
+                      : "bg-red-50",
+                  )}
+                >
                   {parsedError?.type === "user-rejected" ? (
                     <RefreshCw className="h-10 w-10 sm:h-12 sm:w-12 text-yellow-500" />
                   ) : (
@@ -986,8 +1036,8 @@ export function NFTMintButton({
               >
                 Close
               </Button>
-              <Button 
-                onClick={handleRetry} 
+              <Button
+                onClick={handleRetry}
                 className="flex-1"
                 disabled={!isCorrectNetwork && isConnected}
               >
@@ -1005,29 +1055,31 @@ export function NFTMintButton({
 /**
  * Preset builders for common NFT minting scenarios.
  * These provide type-safe, self-documenting ways to create NFTMintButton components.
+ * 
+ * Note: In most cases, you don't need presets - just use the component directly
+ * and it will auto-detect the provider.
  */
 NFTMintButton.presets = {
   /**
-   * Create a basic ETH-based NFT mint
+   * Create an auto-detecting NFT mint (recommended)
    * @example
    * ```tsx
-   * <NFTMintButton {...NFTMintButton.presets.generic({
+   * <NFTMintButton {...NFTMintButton.presets.auto({
    *   contractAddress: "0x5b97886E4e1fC0F7d19146DEC03C917994b3c3a4",
-   *   chainId: 1,
-   *   amount: 1
+   *   chainId: 1
    * })} />
    * ```
    */
-  generic: (props: {
+  auto: (props: {
     contractAddress: Address;
     chainId: number;
     amount?: number;
     buttonText?: string;
+    manifoldParams?: { instanceId?: string; tokenId?: string };
     onMintSuccess?: (txHash: string) => void;
     onMintError?: (error: string) => void;
   }): NFTMintFlowProps => ({
     ...props,
-    provider: "generic",
     amount: props.amount || 1,
   }),
 
@@ -1054,7 +1106,7 @@ NFTMintButton.presets = {
   }): NFTMintFlowProps => ({
     contractAddress: props.contractAddress,
     chainId: props.chainId,
-    provider: "manifold",
+    forceProvider: "manifold",
     manifoldParams: {
       instanceId: props.instanceId,
       tokenId: props.tokenId,
@@ -1066,24 +1118,33 @@ NFTMintButton.presets = {
   }),
 
   /**
-   * Create an auto-detecting NFT mint (tries to figure out the provider)
+   * Force a specific provider (only use if auto-detection fails)
    * @example
    * ```tsx
-   * <NFTMintButton {...NFTMintButton.presets.auto({
+   * <NFTMintButton {...NFTMintButton.presets.forceProvider({
    *   contractAddress: "0x...",
-   *   chainId: 8453
+   *   chainId: 8453,
+   *   provider: "opensea"
    * })} />
    * ```
    */
-  auto: (props: {
+  forceProvider: (props: {
     contractAddress: Address;
     chainId: number;
+    provider: "manifold" | "opensea" | "zora";
     amount?: number;
     buttonText?: string;
+    manifoldParams?: { instanceId?: string; tokenId?: string };
     onMintSuccess?: (txHash: string) => void;
     onMintError?: (error: string) => void;
   }): NFTMintFlowProps => ({
-    ...props,
+    contractAddress: props.contractAddress,
+    chainId: props.chainId,
+    forceProvider: props.provider,
     amount: props.amount || 1,
+    buttonText: props.buttonText,
+    manifoldParams: props.manifoldParams,
+    onMintSuccess: props.onMintSuccess,
+    onMintError: props.onMintError,
   }),
 };

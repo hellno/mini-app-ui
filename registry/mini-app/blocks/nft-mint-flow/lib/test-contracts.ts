@@ -22,12 +22,12 @@ export const testContracts: TestContract[] = [
     params: {
       contractAddress: "0x32dd0a7190b5bba94549a0d04659a9258f5b1387",
       chainId: 8453,
-      provider: "manifold",
+      provider: "manifold" as const,
       instanceId: "4293509360",
       tokenId: "2"
     },
     expected: {
-      provider: "manifold",
+      provider: "manifold" as const,
       hasERC20: true, // HIGHER token payment
       erc20Symbol: "HIGHER",
       mintFeeETH: "0.0005", // Platform fee (0.0005 ETH)
@@ -39,12 +39,12 @@ export const testContracts: TestContract[] = [
     params: {
       contractAddress: "0x22fbd94bfc652dcb8b7958dda318566138d4bedc",
       chainId: 8453,
-      provider: "manifold",
+      provider: "manifold" as const,
       instanceId: "4280815856",
       tokenId: "3"
     },
     expected: {
-      provider: "manifold",
+      provider: "manifold" as const,
       hasERC20: false,
       mintFeeETH: "0.0005", // Platform fee
       nftCost: "0", // Free NFT
@@ -56,12 +56,12 @@ export const testContracts: TestContract[] = [
     params: {
       contractAddress: "0x22fbd94bfc652dcb8b7958dda318566138d4bedc",
       chainId: 8453,
-      provider: "manifold",
+      provider: "manifold" as const,
       instanceId: "4214018288",
       tokenId: "4"
     },
     expected: {
-      provider: "manifold",
+      provider: "manifold" as const,
       hasERC20: true,
       erc20Symbol: "USDC",
       mintFeeETH: "0.0005", // ETH platform fee
@@ -73,10 +73,10 @@ export const testContracts: TestContract[] = [
     params: {
       contractAddress: "0x9D7FEB3351c71D3E87b059FE088e2B73C951727A", // Example thirdweb contract
       chainId: 8453, // Base
-      provider: "thirdweb"
+      provider: "thirdweb" as const
     },
     expected: {
-      provider: "thirdweb",
+      provider: "thirdweb" as const,
       hasERC20: false,
       mintFeeETH: "0", // Free mint
       totalETH: "0"
@@ -87,10 +87,10 @@ export const testContracts: TestContract[] = [
     params: {
       contractAddress: "0x1234567890123456789012345678901234567890", // Example with ETH payment
       chainId: 8453,
-      provider: "thirdweb"
+      provider: "thirdweb" as const
     },
     expected: {
-      provider: "thirdweb",
+      provider: "thirdweb" as const,
       hasERC20: false,
       mintFeeETH: "0.001", // Example price
       totalETH: "0.001"

@@ -263,8 +263,8 @@ export function NFTCard({
         }
       } catch (err) {
         // Don't update state if request was aborted
-        if (err instanceof Error && err.name === 'AbortError') {
-          console.log('NFT data fetch was cancelled');
+        if (err instanceof Error && err.name === "AbortError") {
+          console.log("NFT data fetch was cancelled");
           return;
         }
         
