@@ -34,7 +34,7 @@ import {
   validateParameters,
   getClientForChain,
 } from "@/registry/mini-app/blocks/nft-mint-flow/lib/provider-detector";
-import { getChainById } from "@/registry/mini-app/lib/chains";
+import { getChainById, findChainByName } from "@/registry/mini-app/lib/chains";
 import { getProviderConfig } from "@/registry/mini-app/blocks/nft-mint-flow/lib/provider-configs";
 import { fetchPriceData } from "@/registry/mini-app/blocks/nft-mint-flow/lib/price-optimizer";
 import {
@@ -52,36 +52,27 @@ import {
  * NFTMintButton - Universal NFT minting button with automatic provider detection and ERC20 approval handling
  *
  * The button automatically detects the NFT provider (Manifold, OpenSea, Zora, etc.) by analyzing
- * the contract. You only need to specify the provider if auto-detection fails or you want to
- * override the detection.
+ * the contract. Provider detection is fully automatic - no need to specify the provider manually.
  *
  * @example
  * ```tsx
  * // Basic mint - auto-detects provider and handles everything
  * <NFTMintButton
  *   contractAddress="0x5b97886E4e1fC0F7d19146DEC03C917994b3c3a4"
- *   chainId={1}
+ *   network="ethereum"
  * />
  *
  * // Manifold NFT - auto-detected, just provide the required params
  * <NFTMintButton
  *   contractAddress="0x32dd0a7190b5bba94549a0d04659a9258f5b1387"
- *   chainId={8453}
+ *   network="base"
  *   manifoldParams={{ instanceId: "4293509360" }}
- * />
- *
- * // Force specific provider (only if auto-detection is wrong)
- * <NFTMintButton
- *   contractAddress="0x..."
- *   chainId={8453}
- *   forceProvider="manifold"
- *   manifoldParams={{ instanceId: "123" }}
  * />
  *
  * // Multiple NFTs with success callback
  * <NFTMintButton
  *   contractAddress="0x..."
- *   chainId={8453}
+ *   network="base"
  *   amount={5}
  *   buttonText="Mint 5 NFTs"
  *   onMintSuccess={(txHash) => console.log("Minted!", txHash)}
@@ -96,25 +87,11 @@ type NFTMintFlowProps = {
   contractAddress: Address;
 
   /**
-   * Blockchain network ID
-   * Supports any valid chain ID
+   * Blockchain network name (e.g., "ethereum", "base", "arbitrum", "optimism", "polygon", "zora")
+   * This matches the network prop used by NFTCard for consistency.
+   * @default "ethereum"
    */
-  chainId: number;
-
-  /**
-   * Force a specific NFT provider instead of auto-detection
-   * 
-   * By default, the component auto-detects the provider by analyzing the contract.
-   * Only use this prop if:
-   * - Auto-detection is returning the wrong provider
-   * - You need to test a specific provider's flow
-   * - The contract has non-standard implementation
-   * 
-   * Note: "generic" is not an option here - it's used internally as a fallback.
-   * 
-   * @default undefined (auto-detect)
-   */
-  forceProvider?: "manifold" | "opensea" | "zora";
+  network?: string;
 
   /**
    * Number of NFTs to mint. Defaults to 1.
@@ -125,8 +102,8 @@ type NFTMintFlowProps = {
   /**
    * Manifold-specific parameters
    * 
-   * Required when minting Manifold NFTs (auto-detected or forced).
-   * The component will show an error if these are missing for Manifold contracts.
+   * These are auto-detected when possible, but can be provided if known.
+   * The component will show helpful error messages if required params are missing.
    * 
    * @example
    * // For claim-based mints (most common)
@@ -176,8 +153,7 @@ type NFTMintFlowProps = {
 
 export function NFTMintButton({
   contractAddress,
-  chainId,
-  forceProvider,
+  network = "ethereum",
   amount = 1,
   manifoldParams,
   className,
@@ -194,32 +170,26 @@ export function NFTMintButton({
     null,
   );
 
+  // Convert network name to chainId
+  const chain = React.useMemo(() => {
+    const foundChain = findChainByName(network);
+    if (!foundChain) {
+      console.warn(`NFTMintButton: Network "${network}" not recognized, defaulting to Ethereum mainnet`);
+      return getChainById(1); // Default to Ethereum mainnet
+    }
+    return foundChain;
+  }, [network]);
+
+  const chainId = chain.id;
+
   // Prop validation with helpful errors
   React.useEffect(() => {
-    if (
-      forceProvider === "manifold" &&
-      !manifoldParams?.instanceId &&
-      !manifoldParams?.tokenId
-    ) {
-      console.error(
-        "NFTMintButton: When forceProvider=\"manifold\", you must provide manifoldParams with either instanceId or tokenId. " +
-          "Example: manifoldParams={{ instanceId: \"4293509360\" }}",
-      );
-    }
-
-    if (manifoldParams && forceProvider && forceProvider !== "manifold") {
-      console.warn(
-        "NFTMintButton: manifoldParams provided but forceProvider is not \"manifold\". " +
-          "These params will be ignored for non-Manifold providers.",
-      );
-    }
-
     if (!contractAddress || !contractAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
       console.error(
         "NFTMintButton: Invalid contract address. Must be a valid Ethereum address (0x...)",
       );
     }
-  }, [forceProvider, manifoldParams, chainId, contractAddress]);
+  }, [contractAddress]);
 
   // Destructure commonly used values
   const {
@@ -250,13 +220,13 @@ export function NFTMintButton({
     () => ({
       contractAddress,
       chainId,
-      provider: forceProvider,
+      provider: undefined, // Let auto-detection handle this
       amount,
       instanceId: manifoldParams?.instanceId,
       tokenId: manifoldParams?.tokenId,
       recipient: address,
     }),
-    [contractAddress, chainId, forceProvider, amount, manifoldParams, address],
+    [contractAddress, chainId, amount, manifoldParams, address],
   );
 
   // Watch for transaction completion
@@ -1069,13 +1039,13 @@ NFTMintButton.presets = {
    * ```tsx
    * <NFTMintButton {...NFTMintButton.presets.auto({
    *   contractAddress: "0x5b97886E4e1fC0F7d19146DEC03C917994b3c3a4",
-   *   chainId: 1
+   *   network: "ethereum"
    * })} />
    * ```
    */
   auto: (props: {
     contractAddress: Address;
-    chainId: number;
+    network: string;
     amount?: number;
     buttonText?: string;
     manifoldParams?: { instanceId?: string; tokenId?: string };
@@ -1092,14 +1062,14 @@ NFTMintButton.presets = {
    * ```tsx
    * <NFTMintButton {...NFTMintButton.presets.manifold({
    *   contractAddress: "0x32dd0a7190b5bba94549a0d04659a9258f5b1387",
-   *   chainId: 8453,
+   *   network: "base",
    *   instanceId: "4293509360"
    * })} />
    * ```
    */
   manifold: (props: {
     contractAddress: Address;
-    chainId: number;
+    network: string;
     instanceId: string;
     tokenId?: string;
     amount?: number;
@@ -1108,45 +1078,13 @@ NFTMintButton.presets = {
     onMintError?: (error: string) => void;
   }): NFTMintFlowProps => ({
     contractAddress: props.contractAddress,
-    chainId: props.chainId,
-    forceProvider: "manifold",
+    network: props.network,
     manifoldParams: {
       instanceId: props.instanceId,
       tokenId: props.tokenId,
     },
     amount: props.amount || 1,
     buttonText: props.buttonText,
-    onMintSuccess: props.onMintSuccess,
-    onMintError: props.onMintError,
-  }),
-
-  /**
-   * Force a specific provider (only use if auto-detection fails)
-   * @example
-   * ```tsx
-   * <NFTMintButton {...NFTMintButton.presets.forceProvider({
-   *   contractAddress: "0x...",
-   *   chainId: 8453,
-   *   provider: "opensea"
-   * })} />
-   * ```
-   */
-  forceProvider: (props: {
-    contractAddress: Address;
-    chainId: number;
-    provider: "manifold" | "opensea" | "zora";
-    amount?: number;
-    buttonText?: string;
-    manifoldParams?: { instanceId?: string; tokenId?: string };
-    onMintSuccess?: (txHash: string) => void;
-    onMintError?: (error: string) => void;
-  }): NFTMintFlowProps => ({
-    contractAddress: props.contractAddress,
-    chainId: props.chainId,
-    forceProvider: props.provider,
-    amount: props.amount || 1,
-    buttonText: props.buttonText,
-    manifoldParams: props.manifoldParams,
     onMintSuccess: props.onMintSuccess,
     onMintError: props.onMintError,
   }),

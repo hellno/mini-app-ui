@@ -10,7 +10,7 @@ interface NFTMintExample {
   instanceId: string;
   tokenId: string;
   buttonText?: string;
-  chainId?: number;
+  network?: string;
 }
 
 const nftExamples: NFTMintExample[] = [
@@ -21,7 +21,7 @@ const nftExamples: NFTMintExample[] = [
     instanceId: "",
     tokenId: "",
     buttonText: "Mint Thirdweb NFT",
-    chainId: 42220, // Celo
+    network: "celo"
   },
   {
     title: "Test NFT - No Image",
@@ -78,7 +78,7 @@ const nftExamples: NFTMintExample[] = [
     instanceId: "3763024112",
     tokenId: "1",
     buttonText: "Mint Video NFT",
-    chainId: 8453, // Base
+    network: "base"
   },
 ];
 
@@ -120,19 +120,14 @@ export function NFTMintExamples({
                 {example.instanceId && (
                   <div>Instance: {example.instanceId}</div>
                 )}
-                {example.chainId && example.chainId !== 8453 && (
-                  <div>Chain: {example.chainId === 42220 ? "Celo" : `ID ${example.chainId}`}</div>
+                {example.network && example.network !== "base" && (
+                  <div>Network: {example.network}</div>
                 )}
               </div>
 
               <NFTMintButton
                 contractAddress={example.contractAddress}
-                chainId={example.chainId || 8453} // Use example chainId or default to Base
-                forceProvider={
-                  example.instanceId 
-                    ? "manifold" 
-                    : undefined
-                }
+                network={example.network || "base"} // Use example network or default to Base
                 manifoldParams={
                   example.instanceId
                     ? {

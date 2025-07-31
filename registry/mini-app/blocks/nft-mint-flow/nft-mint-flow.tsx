@@ -28,27 +28,11 @@ interface NFTMintPageProps {
   tokenId: string;
   
   /**
-   * Network name for display purposes (e.g., "base", "ethereum")
+   * Network name (e.g., "base", "ethereum", "arbitrum")
+   * Used for both NFTCard display and NFTMintButton chain resolution
    * @default "ethereum"
    */
   network?: string;
-  
-  /**
-   * Chain ID for the blockchain network
-   * Note: Supports any chain ID, not limited to specific values
-   * @example 1 (Ethereum), 8453 (Base), 42220 (Celo)
-   */
-  chainId: number;
-  
-  /**
-   * Force a specific NFT provider instead of auto-detection
-   * 
-   * Leave undefined for automatic provider detection (recommended).
-   * Only use this if auto-detection fails or you need to override it.
-   * 
-   * @default undefined (auto-detect)
-   */
-  forceProvider?: "manifold" | "opensea" | "zora";
   
   /**
    * Parameters specific to Manifold NFTs
@@ -85,7 +69,6 @@ interface NFTMintPageProps {
  *   contractAddress="0x5b97886E4e1fC0F7d19146DEC03C917994b3c3a4"
  *   tokenId="1"
  *   network="ethereum"
- *   chainId={1}
  * />
  * 
  * // Manifold NFT - just provide the required params
@@ -93,19 +76,9 @@ interface NFTMintPageProps {
  *   contractAddress="0x32dd0a7190b5bba94549a0d04659a9258f5b1387"
  *   tokenId="2"
  *   network="base"
- *   chainId={8453}
  *   manifoldParams={{
  *     instanceId: "4293509360"
  *   }}
- * />
- * 
- * // Force specific provider (rarely needed)
- * <NFTMintFlow
- *   contractAddress="0x..."
- *   tokenId="1"
- *   chainId={8453}
- *   forceProvider="manifold"
- *   manifoldParams={{ instanceId: "123" }}
  * />
  * ```
  */
@@ -113,8 +86,6 @@ export function NFTMintFlow({
   contractAddress,
   tokenId,
   network = "ethereum",
-  chainId,
-  forceProvider,
   manifoldParams,
   buttonText = "Mint NFT",
 }: NFTMintPageProps) {
@@ -151,8 +122,7 @@ export function NFTMintFlow({
       
       <NFTMintButton
         contractAddress={contractAddress}
-        chainId={chainId}
-        forceProvider={forceProvider}
+        network={network}
         manifoldParams={manifoldParams}
         buttonText={buttonText}
         variant="default"
