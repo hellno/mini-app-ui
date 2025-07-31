@@ -171,7 +171,7 @@ export function NFTMintButton({
   );
 
   // Convert network name to chainId
-  const chain = React.useMemo(() => {
+  const targetChain = React.useMemo(() => {
     const foundChain = findChainByName(network);
     if (!foundChain) {
       console.warn(`NFTMintButton: Network "${network}" not recognized, defaulting to Ethereum mainnet`);
@@ -180,7 +180,7 @@ export function NFTMintButton({
     return foundChain;
   }, [network]);
 
-  const chainId = chain.id;
+  const chainId = targetChain.id;
 
   // Prop validation with helpful errors
   React.useEffect(() => {
@@ -245,7 +245,6 @@ export function NFTMintButton({
 
   // Check if user is on the correct network
   const isCorrectNetwork = chain?.id === chainId;
-  const targetChain = getChainById(chainId);
   const networkName = targetChain.name || "Unknown";
 
   // Handle transaction status updates

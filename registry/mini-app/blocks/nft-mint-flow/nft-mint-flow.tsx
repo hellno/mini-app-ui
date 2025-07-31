@@ -36,7 +36,7 @@ interface NFTMintPageProps {
   
   /**
    * Parameters specific to Manifold NFTs
-   * Required when forceProvider="manifold" or when minting Manifold contracts
+   * Required when minting Manifold contracts (auto-detected)
    * 
    * @example { instanceId: "4293509360" } for claim-based mints
    * @example { tokenId: "2" } for specific edition mints
