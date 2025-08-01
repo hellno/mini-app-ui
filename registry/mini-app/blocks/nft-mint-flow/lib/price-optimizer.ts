@@ -1,7 +1,53 @@
 import type { PublicClient } from "viem";
 import type { NFTContractInfo, MintParams } from "@/registry/mini-app/blocks/nft-mint-flow/lib/types";
 import { getProviderConfig } from "@/registry/mini-app/blocks/nft-mint-flow/lib/provider-configs";
-import { THIRDWEB_OPENEDITONERC721_ABI, THIRDWEB_NATIVE_TOKEN } from "@/registry/mini-app/lib/nft-standards";
+import { THIRDWEB_OPENEDITONERC721_ABI, THIRDWEB_NATIVE_TOKEN, MANIFOLD_ERC721_EXTENSION_ABI, MANIFOLD_ERC1155_EXTENSION_ABI } from "@/registry/mini-app/lib/nft-standards";
+
+/**
+ * Helper function to try Manifold contract calls with ABI fallback
+ */
+async function callManifoldWithFallback(
+  client: PublicClient,
+  address: string,
+  functionName: string,
+  args: any[],
+  contractInfo: NFTContractInfo
+): Promise<any> {
+  // First, try with the detected contract type ABI
+  const primaryABI = contractInfo.isERC721 ? MANIFOLD_ERC721_EXTENSION_ABI : MANIFOLD_ERC1155_EXTENSION_ABI;
+  const fallbackABI = contractInfo.isERC721 ? MANIFOLD_ERC1155_EXTENSION_ABI : MANIFOLD_ERC721_EXTENSION_ABI;
+  
+  const contractType = contractInfo.isERC721 ? "ERC721" : (contractInfo.isERC1155 ? "ERC1155" : "Unknown");
+  console.log(`[Manifold Fallback] Attempting ${functionName} with ${contractType} ABI first`);
+  
+  try {
+    const result = await client.readContract({
+      address: address as `0x${string}`,
+      abi: primaryABI,
+      functionName: functionName as any,
+      args: args as any
+    });
+    console.log(`[Manifold Fallback] ✅ Success with ${contractType} ABI`);
+    return result;
+  } catch (primaryError) {
+    console.log(`[Manifold Fallback] ❌ Failed with ${contractType} ABI, trying fallback:`, (primaryError as Error).message);
+    
+    try {
+      const fallbackType = contractInfo.isERC721 ? "ERC1155" : "ERC721";
+      const result = await client.readContract({
+        address: address as `0x${string}`,
+        abi: fallbackABI,
+        functionName: functionName as any,
+        args: args as any
+      });
+      console.log(`[Manifold Fallback] ✅ Success with fallback ${fallbackType} ABI`);
+      return result;
+    } catch (fallbackError) {
+      console.log(`[Manifold Fallback] ❌ Both ABIs failed:`, (fallbackError as Error).message);
+      throw fallbackError;
+    }
+  }
+}
 
 /**
  * Optimized price discovery that batches RPC calls where possible
@@ -22,42 +68,103 @@ export async function fetchPriceData(
   totalCost: bigint;
   claim?: NFTContractInfo["claim"];
 }> {
-  const config = getProviderConfig(contractInfo.provider);
+  const config = getProviderConfig(contractInfo.provider, contractInfo);
   
   if (contractInfo.provider === "manifold" && contractInfo.extensionAddress) {
     // For Manifold, we need extension fee + claim cost
-    const calls = [
-      // Get MINT_FEE from extension
-      {
-        address: contractInfo.extensionAddress,
-        abi: config.mintConfig.abi,
-        functionName: "MINT_FEE",
-        args: []
-      }
-    ];
-    
-    // Add claim fetch if we have instanceId
-    if (params.instanceId) {
-      calls.push({
-        address: contractInfo.extensionAddress,
-        abi: config.mintConfig.abi,
-        functionName: "getClaim",
-        args: [params.contractAddress, BigInt(params.instanceId)]
-      } as any);
-    }
+    console.log(`[Manifold Price] Processing contract type: ERC721=${contractInfo.isERC721}, ERC1155=${contractInfo.isERC1155}`);
     
     try {
-      const results = await Promise.all(
-        calls.map(call => 
-          client.readContract(call as any).catch(err => {
-            console.error("RPC call failed:", err);
-            return null;
-          })
-        )
+      // First get MINT_FEE - this is consistent across both contract versions
+      const mintFeePromise = callManifoldWithFallback(
+        client,
+        contractInfo.extensionAddress,
+        "MINT_FEE",
+        [],
+        contractInfo
       );
       
-      const mintFee = results[0] as bigint | null;
-      const claim = results[1] as any;
+      // Then get claim data if we have instanceId or tokenId
+      let claimPromise: Promise<any> | null = null;
+      
+      if (params.instanceId) {
+        console.log(`[Manifold Price] Fetching claim data for instanceId: ${params.instanceId}`);
+        claimPromise = callManifoldWithFallback(
+          client,
+          contractInfo.extensionAddress,
+          "getClaim",
+          [params.contractAddress, BigInt(params.instanceId)],
+          contractInfo
+        );
+      } else if (params.tokenId) {
+        console.log(`[Manifold Price] Fetching claim data for tokenId: ${params.tokenId}`);
+        claimPromise = callManifoldWithFallback(
+          client,
+          contractInfo.extensionAddress,
+          "getClaimForToken",
+          [params.contractAddress, BigInt(params.tokenId)],
+          contractInfo
+        );
+      }
+      
+      // Execute both promises
+      const [mintFee, claimData] = await Promise.all([
+        mintFeePromise.catch(err => {
+          console.error("[Manifold Price] MINT_FEE call failed:", err);
+          return null;
+        }),
+        claimPromise ? claimPromise.catch(err => {
+          console.error("[Manifold Price] Claim data call failed:", err);
+          return null;
+        }) : Promise.resolve(null)
+      ]);
+      
+      let claim = claimData;
+      
+      // Handle getClaimForToken response format [instanceId, claim]
+      if (claim && Array.isArray(claim) && claim.length === 2 && params.tokenId) {
+        console.log("Got getClaimForToken response, extracting claim data");
+        const [extractedInstanceId, claimData] = claim;
+        claim = claimData;
+        // Update params with the extracted instanceId for consistency
+        if (!params.instanceId) {
+          params.instanceId = extractedInstanceId.toString();
+        }
+      }
+      
+      // Validate claim data structure before accessing properties
+      if (claim && (params.instanceId || params.tokenId)) {
+        // Check if claim is a valid object with expected properties
+        if (typeof claim !== "object" || claim.cost === undefined) {
+          console.error(`Invalid claim data for instanceId ${params.instanceId}:`, claim);
+          console.warn(`This may indicate the instanceId ${params.instanceId} doesn't exist or the claim has expired`);
+          // Continue with just the mint fee, don't fail completely
+          return {
+            mintPrice: mintFee || BigInt(0),
+            totalCost: mintFee || BigInt(0)
+          };
+        }
+        
+        // Validate required claim properties
+        const requiredProps = ["cost", "erc20", "startDate", "endDate", "walletMax"];
+        const missingProps = requiredProps.filter(prop => claim[prop] === undefined);
+        if (missingProps.length > 0) {
+          console.error(`Claim data missing required properties: ${missingProps.join(", ")}`);
+          return {
+            mintPrice: mintFee || BigInt(0),
+            totalCost: mintFee || BigInt(0)
+          };
+        }
+        
+        // Validate data types
+        if (typeof claim.cost !== "bigint" && typeof claim.cost !== "number") {
+          console.error("Invalid claim.cost type:", typeof claim.cost, claim.cost);
+          return {
+            mintPrice: mintFee || BigInt(0),
+            totalCost: mintFee || BigInt(0)
+          };
+        }
+      }
       
       let totalCost = mintFee || BigInt(0);
       let erc20Details = undefined;
@@ -143,8 +250,31 @@ export async function fetchPriceData(
         claim: claim ? contractInfo.claim : undefined
       };
     } catch (err) {
-      console.error("Failed to fetch Manifold price data:", err);
-      return { totalCost: BigInt(0) };
+      console.error("[Manifold Price] Failed to fetch complete Manifold price data:", err);
+      
+      // Fallback: Try to get just the mint fee without claim data
+      try {
+        console.log("[Manifold Price] Attempting fallback to retrieve MINT_FEE only");
+        const mintFee = await callManifoldWithFallback(
+          client,
+          contractInfo.extensionAddress,
+          "MINT_FEE",
+          [],
+          contractInfo
+        );
+        
+        console.log("[Manifold Price] ✅ Fallback: Retrieved mint fee only:", mintFee);
+        return {
+          mintPrice: mintFee as bigint,
+          totalCost: mintFee as bigint
+        };
+      } catch (fallbackErr) {
+        console.error("[Manifold Price] ❌ All fallback attempts failed:", fallbackErr);
+        console.log("[Manifold Price] Using default Manifold fee of 0.0005 ETH");
+        return { 
+          totalCost: BigInt("500000000000000") // Default 0.0005 ETH Manifold fee
+        };
+      }
     }
   } else if (contractInfo.provider === "nfts2me") {
     // Special handling for nfts2me - try different pricing patterns

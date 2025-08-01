@@ -9,15 +9,6 @@ interface NFTExample {
   contractAddress: string;
   tokenId: string;
   network: string;
-  customTitle?: string;
-  titlePosition?: "top" | "bottom" | "outside";
-  networkPosition?:
-    | "top-left"
-    | "top-right"
-    | "bottom-left"
-    | "bottom-right"
-    | "outside";
-  layout?: "compact" | "card" | "detailed";
 }
 
 const nftExamples: NFTExample[] = [
@@ -27,8 +18,6 @@ const nftExamples: NFTExample[] = [
     contractAddress: "0xD2Ede6B7b1B08B2A8bB36118fBC0F76409719070",
     tokenId: "1",
     network: "celo",
-    titlePosition: "outside",
-    networkPosition: "outside",
   },
   {
     title: "Zora NFT",
@@ -36,8 +25,6 @@ const nftExamples: NFTExample[] = [
     contractAddress: "0xe03ef4b9db1a47464de84fb476f9baf493b3e886",
     tokenId: "1",
     network: "zora",
-    titlePosition: "outside",
-    networkPosition: "outside",
   },
   {
     title: "Base Flamenco",
@@ -45,8 +32,6 @@ const nftExamples: NFTExample[] = [
     contractAddress: "0x60b400dC94195076580b3556004E87488C10FC83",
     tokenId: "315",
     network: "base",
-    titlePosition: "outside",
-    networkPosition: "outside",
   },
   {
     title: "Farcaster Pro OG",
@@ -56,24 +41,25 @@ const nftExamples: NFTExample[] = [
     network: "base",
   },
   {
+    title: "Manifold GIF",
+    description: "by Jacque on Base",
+    contractAddress: "0x8D6d878F99740445a3078b1b24cC56814ea83D2b",
+    tokenId: "8",
+    network: "base",
+  },
+  {
     title: "Mutant Ape Yacht Club",
     description: "MAYC on Ethereum",
     contractAddress: "0x60e4d786628fea6478f785a6d7e704777c86a7c6",
     tokenId: "7789",
     network: "mainnet",
-    customTitle: "Mutant Ape #7789",
-    titlePosition: "outside",
-    networkPosition: "outside",
   },
   {
     title: "Manifold NFT",
     description: "Manifold on Base",
-    // contractAddress: "0x22fbd94bfc652dcb8b7958dda318566138d4bedc",
-    // tokenId: "3",
     contractAddress: "0x32dd0a7190b5bba94549a0d04659a9258f5b1387",
     tokenId: "2",
     network: "base",
-    networkPosition: "outside",
   },
   {
     title: "Manifold Video NFT",
@@ -81,8 +67,6 @@ const nftExamples: NFTExample[] = [
     contractAddress: "0xc9Fda06ab3015Cec0F803684baaF3fFdb692F42b",
     tokenId: "1",
     network: "base",
-    titlePosition: "outside",
-    networkPosition: "outside",
   },
   {
     title: "Test NFT on Base",
@@ -90,9 +74,6 @@ const nftExamples: NFTExample[] = [
     contractAddress: "0x8F843c58201197D20A4ed8AeC12ae8527c2c4d7b",
     tokenId: "1",
     network: "base",
-    titlePosition: "outside",
-    networkPosition: "outside",
-    layout: "detailed",
   },
   {
     title: "Azuki",
@@ -100,18 +81,6 @@ const nftExamples: NFTExample[] = [
     contractAddress: "0xed5af388653567af2f388e6224dc7c4b3241c544",
     tokenId: "1",
     network: "ethereum",
-    titlePosition: "bottom",
-    networkPosition: "top-right",
-  },
-  {
-    title: "Doodles",
-    description: "Title at top and blockchain in bottom right",
-    contractAddress: "0x8a90cab2b38dba80c64b7734e58ee1db38b8992e",
-    tokenId: "1",
-    network: "ethereum",
-    titlePosition: "top",
-    networkPosition: "bottom-right",
-    layout: "compact",
   },
 ];
 

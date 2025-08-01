@@ -66,8 +66,112 @@ export const MANIFOLD_DETECTION_ABI = parseAbi([
   "function getExtensions() view returns (address[])",
 ]);
 
-// Manifold extension contract full ABI
-export const MANIFOLD_EXTENSION_ABI = [
+// Manifold ERC721 extension contract ABI (includes contractVersion and identical fields)
+export const MANIFOLD_ERC721_EXTENSION_ABI = [
+  {
+    inputs: [
+      { name: "creatorContractAddress", type: "address" },
+      { name: "tokenId", type: "uint256" }
+    ],
+    name: "tokenURI",
+    outputs: [{ name: "uri", type: "string" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      { name: "creatorContractAddress", type: "address" },
+      { name: "instanceId", type: "uint256" }
+    ],
+    name: "getClaim",
+    outputs: [
+      {
+        components: [
+          { name: "total", type: "uint32" },
+          { name: "totalMax", type: "uint32" },
+          { name: "walletMax", type: "uint32" },
+          { name: "startDate", type: "uint48" },
+          { name: "endDate", type: "uint48" },
+          { name: "storageProtocol", type: "uint8" },
+          { name: "identical", type: "uint8" },
+          { name: "merkleRootEmpty", type: "bool" },
+          { name: "merkleRoot", type: "bytes32" },
+          { name: "location", type: "string" },
+          { name: "cost", type: "uint256" },
+          { name: "paymentReceiver", type: "address" },
+          { name: "erc20", type: "address" },
+          { name: "signingAddress", type: "address" }
+        ],
+        name: "claim",
+        type: "tuple"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      { name: "creatorContractAddress", type: "address" },
+      { name: "tokenId", type: "uint256" }
+    ],
+    name: "getClaimForToken",
+    outputs: [
+      { name: "instanceId", type: "uint256" },
+      {
+        components: [
+          { name: "total", type: "uint32" },
+          { name: "totalMax", type: "uint32" },
+          { name: "walletMax", type: "uint32" },
+          { name: "startDate", type: "uint48" },
+          { name: "endDate", type: "uint48" },
+          { name: "storageProtocol", type: "uint8" },
+          { name: "identical", type: "uint8" },
+          { name: "merkleRootEmpty", type: "bool" },
+          { name: "merkleRoot", type: "bytes32" },
+          { name: "location", type: "string" },
+          { name: "cost", type: "uint256" },
+          { name: "paymentReceiver", type: "address" },
+          { name: "erc20", type: "address" },
+          { name: "signingAddress", type: "address" }
+        ],
+        name: "claim",
+        type: "tuple"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      { name: "creatorContractAddress", type: "address" },
+      { name: "instanceId", type: "uint256" },
+      { name: "mintIndex", type: "uint32" },
+      { name: "merkleProof", type: "bytes32[]" },
+      { name: "mintFor", type: "address" }
+    ],
+    name: "mint",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "MINT_FEE",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "MINT_FEE_MERKLE",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  }
+] as const;
+
+// Manifold ERC1155 extension contract ABI (13 fields - no contractVersion or identical)
+export const MANIFOLD_ERC1155_EXTENSION_ABI = [
   {
     inputs: [
       { name: "creatorContractAddress", type: "address" },
@@ -167,6 +271,9 @@ export const MANIFOLD_EXTENSION_ABI = [
     type: "function"
   }
 ] as const;
+
+// Backward compatibility - defaults to ERC721 version
+export const MANIFOLD_EXTENSION_ABI = MANIFOLD_ERC721_EXTENSION_ABI;
 
 // ERC165 interface detection
 export const ERC165_ABI = parseAbi([

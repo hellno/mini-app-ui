@@ -71,7 +71,6 @@ export function useMiniAppSdk() {
   const pinFrame = useCallback(async () => {
     try {
       const result = await sdk.actions.addMiniApp();
-      console.log("addMiniApp result", result);
       // @ts-expect-error - result type mixup
       if (result.added) {
         setPinFrameResponse(

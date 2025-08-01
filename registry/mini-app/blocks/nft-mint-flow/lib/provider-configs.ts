@@ -1,6 +1,6 @@
 import { type Address, maxUint256 } from "viem";
 import type { ProviderConfig } from "@/registry/mini-app/blocks/nft-mint-flow/lib/types";
-import { MANIFOLD_EXTENSION_ABI, KNOWN_CONTRACTS, PRICE_DISCOVERY_ABI, MINT_ABI, THIRDWEB_OPENEDITONERC721_ABI, THIRDWEB_NATIVE_TOKEN } from "@/registry/mini-app/lib/nft-standards";
+import { MANIFOLD_EXTENSION_ABI, MANIFOLD_ERC721_EXTENSION_ABI, MANIFOLD_ERC1155_EXTENSION_ABI, KNOWN_CONTRACTS, PRICE_DISCOVERY_ABI, MINT_ABI, THIRDWEB_OPENEDITONERC721_ABI, THIRDWEB_NATIVE_TOKEN } from "@/registry/mini-app/lib/nft-standards";
 
 export const PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
   manifold: {
@@ -152,9 +152,48 @@ export const PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
   }
 };
 
+/**
+ * Get the correct Manifold ABI based on contract type
+ */
+function getManifoldABI(contractInfo?: any) {
+  if (!contractInfo) {
+    console.log("[Manifold ABI] No contract info provided, defaulting to ERC721 ABI");
+    return MANIFOLD_ERC721_EXTENSION_ABI;
+  }
+  
+  // Use contract type detection to select ABI
+  if (contractInfo.isERC721) {
+    console.log("[Manifold ABI] Using ERC721 ABI (14 fields in getClaim)");
+    return MANIFOLD_ERC721_EXTENSION_ABI;
+  } else if (contractInfo.isERC1155) {
+    console.log("[Manifold ABI] Using ERC1155 ABI (12 fields in getClaim)");
+    return MANIFOLD_ERC1155_EXTENSION_ABI;
+  } else {
+    console.log("[Manifold ABI] Contract type unknown, defaulting to ERC721 ABI");
+    return MANIFOLD_ERC721_EXTENSION_ABI;
+  }
+}
+
 // Helper to get config by provider name
 export function getProviderConfig(provider: string, contractInfo?: any): ProviderConfig {
   const baseConfig = PROVIDER_CONFIGS[provider] || PROVIDER_CONFIGS.generic;
+  
+  // For Manifold, we need to inject the correct ABI based on contract type
+  if (provider === "manifold") {
+    const manifoldABI = getManifoldABI(contractInfo);
+    
+    return {
+      ...baseConfig,
+      priceDiscovery: {
+        ...baseConfig.priceDiscovery,
+        abis: [manifoldABI]
+      },
+      mintConfig: {
+        ...baseConfig.mintConfig,
+        abi: manifoldABI
+      }
+    };
+  }
   
   // For thirdweb, we need to inject the claim condition data
   if (provider === "thirdweb" && contractInfo?.claimCondition) {

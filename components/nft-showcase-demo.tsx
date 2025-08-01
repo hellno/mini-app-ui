@@ -3,7 +3,11 @@
 import * as React from "react";
 import { NFTMintFlow } from "@/registry/mini-app/blocks/nft-mint-flow/nft-mint-flow";
 
-export function NFTShowcaseDemo({ showHeader = true }: { showHeader?: boolean }) {
+export function NFTShowcaseDemo({
+  showHeader = true,
+}: {
+  showHeader?: boolean;
+}) {
   return (
     <div className="w-full flex flex-col items-center space-y-6">
       {showHeader && (
@@ -14,7 +18,7 @@ export function NFTShowcaseDemo({ showHeader = true }: { showHeader?: boolean })
           </p>
         </div>
       )}
-      
+
       <div className="w-full flex flex-col gap-6 items-center">
         <NFTMintFlow
           contractAddress="0x32dd0a7190b5bba94549a0d04659a9258f5b1387"
@@ -22,33 +26,50 @@ export function NFTShowcaseDemo({ showHeader = true }: { showHeader?: boolean })
           network="base"
           manifoldParams={{
             instanceId: "4293509360",
-            tokenId: "2"
+            tokenId: "2",
           }}
           buttonText="Mint with $HIGHER"
         />
-        
+
         <div className="text-center">
-          <h4 className="text-sm font-medium mb-2">Video NFT Example</h4>
+          <h4 className="text-sm font-medium mb-2">
+            Manifold Video NFT Open Edition
+          </h4>
           <NFTMintFlow
             contractAddress="0xc9Fda06ab3015Cec0F803684baaF3fFdb692F42b"
             tokenId="1"
             network="base"
             manifoldParams={{
               instanceId: "3763024112",
-              tokenId: "1"
+              tokenId: "1",
             }}
-            buttonText="Mint Video NFT"
+            buttonText="Mint Video NFT Open Edition"
+          />
+        </div>
+        <div className="text-center">
+          <h4 className="text-sm font-medium mb-2">
+            Manifold Video NFT Limited Mint
+          </h4>
+          <NFTMintFlow
+            contractAddress="0x9a6a629ee4579f731ce8f27d3e6024b1ed572e59"
+            tokenId="3"
+            network="base"
+            manifoldParams={{
+              instanceId: "4283867376",
+              tokenId: "3",
+            }}
+            buttonText="Mint Video NFT Limited Mint"
           />
         </div>
       </div>
-      
+
       {showHeader && (
         <div className="mt-8 p-4 bg-muted/50 rounded-lg">
           <h4 className="font-medium mb-2 text-sm">How to use:</h4>
           <pre className="text-xs overflow-x-auto">
             <code>{`// Best practice: Match component widths
 <div className="space-y-4 w-[350px]">
-  <NFTCard 
+  <NFTCard
     contractAddress="0x..."
     tokenId="1"
     network="base"
@@ -69,7 +90,7 @@ export function NFTShowcaseDemo({ showHeader = true }: { showHeader?: boolean })
 
 // Alternative: Use consistent container
 <div className="max-w-sm space-y-4">
-  <NFTCard 
+  <NFTCard
     contractAddress="0x..."
     tokenId="1"
     network="base"

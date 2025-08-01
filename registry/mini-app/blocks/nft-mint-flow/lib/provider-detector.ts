@@ -247,8 +247,16 @@ export function validateParameters(
   // Provider-specific validation
   if (contractInfo.provider === "manifold") {
     if (!params.instanceId && !params.tokenId) {
-      errors.push("Manifold NFTs require either instanceId or tokenId");
+      errors.push("Manifold NFTs require either instanceId or tokenId. Check the Manifold claim page URL for the instanceId (e.g., /instance/123456) or use getClaimForToken to find the instanceId for a specific tokenId.");
       missingParams.push("instanceId or tokenId");
+    }
+    
+    // Validate instanceId format if provided
+    if (params.instanceId) {
+      const instanceIdNum = parseInt(params.instanceId);
+      if (isNaN(instanceIdNum) || instanceIdNum < 0) {
+        errors.push(`Invalid instanceId format: ${params.instanceId}. Must be a positive integer.`);
+      }
     }
 
     if (

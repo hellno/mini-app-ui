@@ -91,6 +91,7 @@ export function NFTCard({
   const [metadata, setMetadata] = useState<NFTMetadata | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoDimensions, setVideoDimensions] = useState<{ width: number; height: number } | null>(null);
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
   const [isVideo, setIsVideo] = useState<boolean>(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -353,37 +354,39 @@ export function NFTCard({
     
     const numericSize = typeof size === "number" ? size : 300;
     
-    // Check if we have image_details with dimensions
-    if (metadata?.image_details?.width && metadata?.image_details?.height) {
-      const originalAspectRatio = metadata.image_details.width / metadata.image_details.height;
+    // Get dimensions from metadata or image natural dimensions
+    const dimensionsFromMetadata = metadata?.image_details?.width && metadata?.image_details?.height 
+      ? { width: metadata.image_details.width, height: metadata.image_details.height }
+      : null;
+    
+    const availableDimensions = dimensionsFromMetadata || imageDimensions || videoDimensions;
+    
+    // If we have dimensions, calculate dynamic height based on aspect ratio
+    if (availableDimensions) {
+      const aspectRatio = availableDimensions.width / availableDimensions.height;
+      const dynamicHeight = Math.round(numericSize / aspectRatio);
       
-      // Scale to fit within bounds while preserving aspect ratio
-      // For images/videos with known dimensions, always use square container but contain the content
       return { 
         width: numericSize, 
-        height: numericSize,
-        useContain: true,
+        height: dynamicHeight,
+        useContain: false, // No need for contain with dynamic sizing
         isPercentage: false
       };
     }
     
-    // No image_details, use square dimensions
+    // No dimensions available, use square
     return { width: numericSize, height: numericSize, useContain: false, isPercentage: false };
   };
 
   const displayDimensions = getDisplayDimensions();
   
-  // Auto-detect videos and apply flexible aspect ratio
-  const shouldUseFlexibleHeight = isVideo && videoDimensions;
+  // Apply flexible aspect ratio for any media with known dimensions
+  const shouldUseFlexibleHeight = (isVideo && videoDimensions) || imageDimensions || (metadata?.image_details?.width && metadata?.image_details?.height);
   
-  // Calculate container height based on video dimensions for videos
-  const containerHeight = shouldUseFlexibleHeight 
-    ? (displayDimensions.isPercentage 
-        ? displayDimensions.height 
-        : `${Math.round((parseFloat(String(displayDimensions.width)) * videoDimensions.height) / videoDimensions.width)}px`)
-    : (displayDimensions.isPercentage 
-        ? displayDimensions.height 
-        : `${displayDimensions.height}px`);
+  // Calculate container height - now using the dynamic height from getDisplayDimensions
+  const containerHeight = displayDimensions.isPercentage 
+    ? displayDimensions.height 
+    : `${displayDimensions.height}px`;
 
   return (
     <div className={cn(getContainerClasses())}>
@@ -445,10 +448,17 @@ export function NFTCard({
             alt="NFT Image"
             fill={true}
             className={cn(
-              "object-contain",
+              shouldUseFlexibleHeight ? "object-cover" : "object-contain",
               isLoading && "opacity-0"
             )}
             unoptimized={true}
+            onLoad={(e) => {
+              const img = e.currentTarget;
+              setImageDimensions({
+                width: img.naturalWidth,
+                height: img.naturalHeight
+              });
+            }}
             onError={() => setImageUrl(PLACEHOLDER_IMAGE)}
           />
         )}
