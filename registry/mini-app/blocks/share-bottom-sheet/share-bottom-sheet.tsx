@@ -32,12 +32,12 @@ export function ShareBottomSheet({
   const handleShare = async () => {
     // Prevent double clicks
     if (isSharing) return;
-    
+
     setIsSharing(true);
-    
+
     try {
       const frameContext = await sdk.context;
-      
+
       if (frameContext) {
         // Use SDK to compose cast within the mini app
         let cast: { text: string; embeds: [] | [string] } = {
@@ -54,9 +54,9 @@ export function ShareBottomSheet({
         const truncatedText = shareText.slice(0, 320);
         const encodedText = encodeURIComponent(truncatedText);
         const url = shareUrl
-          ? `https://warpcast.com/~/compose?text=${encodedText}&embeds[]=${encodeURIComponent(shareUrl)}`
-          : `https://warpcast.com/~/compose?text=${encodedText}`;
-        
+          ? `https://farcaster.xyz/~/compose?text=${encodedText}&embeds[]=${encodeURIComponent(shareUrl)}`
+          : `https://farcaster.xyz/~/compose?text=${encodedText}`;
+
         window.open(url, "_blank");
         onOpenChange(false);
       }
@@ -69,10 +69,7 @@ export function ShareBottomSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent 
-        side="bottom" 
-        className="rounded-t-2xl px-6 pb-8 pt-6"
-      >
+      <SheetContent side="bottom" className="rounded-t-2xl px-6 pb-8 pt-6">
         <div className="mx-auto max-w-md space-y-6">
           <SheetHeader>
             <SheetTitle className="text-center text-2xl font-semibold">

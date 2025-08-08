@@ -19,7 +19,7 @@ export function ShareCastButton({
   const { sdk } = useMiniAppSdk();
 
   const shareUrl = useMemo(() => {
-    let share = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`;
+    let share = `https://farcaster.xyz/~/compose?text=${encodeURIComponent(text)}`;
     if (url) {
       share += `&embeds[]=${encodeURIComponent(url)}`;
     }
